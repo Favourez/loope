@@ -1,0 +1,104 @@
+# Alert rules for Emergency Response App
+groups:
+  - name: emergency_app_alerts
+    rules:
+      # High number of emergency reports
+      - alert: HighEmergencyReports
+        expr: increase(emergency_reports_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+          service: emergency-app
+        annotations:
+          summary: "High number of emergency reports detected"
+          description: "More than 5 emergency reports in the last 5 minutes. Current rate: {{ $value }}"
+
+      # Critical emergency reports
+      - alert: CriticalEmergencyReports
+        expr: increase(emergency_reports_total{severity="critical"}[1m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: emergency-app
+        annotations:
+          summary: "Critical emergency report received"
+          description: "A critical emergency has been reported. Immediate attention required."
+
+      # System health degradation
+      - alert: SystemHealthLow
+        expr: system_health_score < 70
+        for: 2m
+        labels:
+          severity: warning
+          service: emergency-app
+        annotations:
+          summary: "System health score is low"
+          description: "System health score is {{ $value }}. This may indicate high load or multiple emergencies."
+
+      # System health critical
+      - alert: SystemHealthCritical
+        expr: system_health_score < 50
+        for: 1m
+        labels:
+          severity: critical
+          service: emergency-app
+        annotations:
+          summary: "System health score is critically low"
+          description: "System health score is {{ $value }}. Immediate investigation required."
+
+      # High response time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(flask_http_request_duration_seconds_bucket[5m])) > 2
+        for: 2m
+        labels:
+          severity: warning
+          service: emergency-app
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s, which is above the 2s threshold."
+
+      # Application down
+      - alert: ApplicationDown
+        expr: up{job="emergency-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: emergency-app
+        annotations:
+          summary: "Emergency Response App is down"
+          description: "The Emergency Response App has been down for more than 1 minute."
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(flask_http_request_exceptions_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: emergency-app
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second over the last 5 minutes."
+
+  - name: infrastructure_alerts
+    rules:
+      # High CPU usage (if node exporter is available)
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes. Current usage: {{ $value }}%"
+
+      # High memory usage (if node exporter is available)
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 5 minutes. Current usage: {{ $value }}%"
