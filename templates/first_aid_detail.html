@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}{{ practice.title }} - First Aid Guide{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('first_aid') }}">
+            <i class="fas fa-arrow-left me-2"></i>Back to First Aid
+        </a>
+
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="{{ url_for('landing') }}">
+                <i class="fas fa-home me-1"></i>Home
+            </a>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-gradient text-white" style="background: linear-gradient(45deg, #28a745, #20c997);">
+                <div class="card-body text-center py-5">
+                    <i class="{{ practice.icon }} fa-4x mb-3"></i>
+                    <h1 class="display-4">{{ practice.title }}</h1>
+                    <p class="lead">{{ practice.description }}</p>
+                    <span class="badge bg-light text-dark fs-6">{{ practice.emergency_type }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Alert -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Emergency First!</h5>
+                <p class="mb-0">If this is a real emergency, call emergency services immediately before attempting first aid!<br>
+                <strong>Fire Rescue: 118 | Police: 117 | Ambulance: 119</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Tabs -->
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="guideTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="steps-tab" data-bs-toggle="tab" data-bs-target="#steps" type="button">
+                        <i class="fas fa-list-ol me-2"></i>Step-by-Step Guide
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="video-tab" data-bs-toggle="tab" data-bs-target="#video" type="button">
+                        <i class="fas fa-video me-2"></i>Video Instructions
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tips-tab" data-bs-toggle="tab" data-bs-target="#tips" type="button">
+                        <i class="fas fa-lightbulb me-2"></i>Tips & Warnings
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-4" id="guideTabsContent">
+                <!-- Step-by-Step Guide -->
+                <div class="tab-pane fade show active" id="steps" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="stepsContent">
+                                <!-- Content will be loaded based on practice ID -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Instructions -->
+                <div class="tab-pane fade" id="video" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <div class="ratio ratio-16x9">
+                                        <iframe id="instructionVideo" src="" title="First Aid Video" allowfullscreen></iframe>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <h5>Video Guide</h5>
+                                    <p>Watch this comprehensive video demonstration of {{ practice.title }}.</p>
+                                    <div class="alert alert-info">
+                                        <small><i class="fas fa-info-circle me-1"></i>Turn on captions for better understanding</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips & Warnings -->
+                <div class="tab-pane fade" id="tips" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="tipsContent">
+                                <!-- Content will be loaded based on practice ID -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>Quick Actions</h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-danger w-100" onclick="callEmergency()">
+                                <i class="fas fa-phone me-2"></i>Call Emergency
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-warning w-100" onclick="shareGuide()">
+                                <i class="fas fa-share me-2"></i>Share Guide
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-info w-100" onclick="printGuide()">
+                                <i class="fas fa-print me-2"></i>Print Guide
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('first_aid') }}" class="btn btn-success w-100">
+                                <i class="fas fa-list me-2"></i>More Guides
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const practiceId = {{ practice.id }};
+
+// Load content based on practice ID
+document.addEventListener('DOMContentLoaded', function() {
+    loadStepsContent(practiceId);
+    loadTipsContent(practiceId);
+    loadVideoContent(practiceId);
+});
+
+function loadStepsContent(id) {
+    const stepsData = {
+        1: { // CPR
+            steps: [
+                "Check for responsiveness - Tap shoulders and shout 'Are you okay?'",
+                "Call for help - Call emergency services immediately",
+                "Position the person - Place on firm, flat surface, tilt head back",
+                "Hand placement - Place heel of one hand on center of chest, other hand on top",
+                "Chest compressions - Push hard and fast at least 2 inches deep, 100-120 per minute",
+                "Rescue breaths - Tilt head, lift chin, give 2 breaths after every 30 compressions",
+                "Continue cycles - Keep going until emergency services arrive"
+            ]
+        },
+        2: { // Choking
+            steps: [
+                "Assess the situation - Ask 'Are you choking?' Look for signs",
+                "Encourage coughing - If person can cough, encourage them to continue",
+                "Position for back blows - Lean person forward, support chest",
+                "Give back blows - Strike firmly between shoulder blades 5 times",
+                "Abdominal thrusts - Stand behind, hands below ribcage, thrust upward",
+                "Alternate techniques - Continue back blows and abdominal thrusts",
+                "Call emergency services if object doesn't dislodge"
+            ]
+        }
+        // Add more practices as needed
+    };
+
+    const steps = stepsData[id]?.steps || ["Detailed steps for this practice are being updated."];
+    const stepsHtml = steps.map((step, index) =>
+        `<div class="step-item mb-3">
+            <div class="d-flex">
+                <div class="step-number bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                    ${index + 1}
+                </div>
+                <div class="step-content">
+                    <p class="mb-0">${step}</p>
+                </div>
+            </div>
+        </div>`
+    ).join('');
+
+    document.getElementById('stepsContent').innerHTML = stepsHtml;
+}
+
+function loadTipsContent(id) {
+    const tipsData = {
+        1: {
+            tips: [
+                "Push hard and fast - Don't be afraid to break ribs",
+                "Minimize interruptions - Continuous compressions are crucial",
+                "Switch every 2 minutes to prevent fatigue"
+            ],
+            warnings: [
+                "Don't perform CPR on conscious person",
+                "Don't give up - Continue until help arrives",
+                "Don't tilt head if spinal injury suspected"
+            ]
+        }
+    };
+
+    const data = tipsData[id] || { tips: ["Tips being updated"], warnings: ["Warnings being updated"] };
+
+    const tipsHtml = `
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="text-success"><i class="fas fa-lightbulb me-2"></i>Helpful Tips</h5>
+                <ul class="list-group list-group-flush">
+                    ${data.tips.map(tip => `<li class="list-group-item"><i class="fas fa-check text-success me-2"></i>${tip}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Important Warnings</h5>
+                <ul class="list-group list-group-flush">
+                    ${data.warnings.map(warning => `<li class="list-group-item"><i class="fas fa-times text-danger me-2"></i>${warning}</li>`).join('')}
+                </ul>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('tipsContent').innerHTML = tipsHtml;
+}
+
+function loadVideoContent(id) {
+    // Sample educational videos (replace with actual video URLs)
+    const videoUrls = {
+        1: "https://www.youtube.com/embed/TRVjwdNVgjs", // CPR training video
+        2: "https://www.youtube.com/embed/7CgtIgSyAiU"  // Choking relief video
+    };
+
+    const videoUrl = videoUrls[id] || "https://www.youtube.com/embed/dQw4w9WgXcQ";
+    document.getElementById('instructionVideo').src = videoUrl;
+}
+
+function callEmergency() {
+    alert('In a real emergency, call Cameroon emergency services:\n\n• Fire Rescue: 118\n• Police: 117\n• Ambulance: 119');
+}
+
+function shareGuide() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ practice.title }} - First Aid Guide',
+            text: 'Learn {{ practice.title }} with this comprehensive guide',
+            url: window.location.href
+        });
+    } else {
+        // Fallback for browsers that don't support Web Share API
+        navigator.clipboard.writeText(window.location.href);
+        alert('Guide URL copied to clipboard!');
+    }
+}
+
+function printGuide() {
+    window.print();
+}
+</script>
+{% endblock %}

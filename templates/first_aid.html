@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}First Aid Guides - Emergency Response App{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('landing') }}">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="{{ url_for('landing') }}">
+                <i class="fas fa-home me-1"></i>Home
+            </a>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-4 text-success">
+                    <i class="fas fa-first-aid me-3"></i>First Aid Practices
+                </h1>
+                <p class="lead">Learn life-saving techniques with step-by-step guides and video instructions</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-lg" id="searchInput" placeholder="Search for first aid procedures...">
+                <button class="btn btn-success" type="button" onclick="searchPractices()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Categories -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <button class="btn btn-outline-danger filter-btn" data-category="all">All</button>
+                <button class="btn btn-outline-danger filter-btn" data-category="Cardiac Emergency">Cardiac</button>
+                <button class="btn btn-outline-warning filter-btn" data-category="Airway Emergency">Airway</button>
+                <button class="btn btn-outline-info filter-btn" data-category="Thermal Emergency">Thermal</button>
+                <button class="btn btn-outline-secondary filter-btn" data-category="Trauma Emergency">Trauma</button>
+                <button class="btn btn-outline-primary filter-btn" data-category="Environmental Emergency">Environmental</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- First Aid Practices Grid -->
+    <div class="row" id="practicesGrid">
+        {% for practice in practices %}
+        <div class="col-lg-4 col-md-6 mb-4 practice-card" data-category="{{ practice.emergency_type }}">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-gradient text-white text-center" style="background: linear-gradient(45deg, #28a745, #20c997);">
+                    <i class="{{ practice.icon }} fa-3x mb-2"></i>
+                    <h5 class="card-title mb-0">{{ practice.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ practice.description }}</p>
+                    <div class="mb-3">
+                        <span class="badge bg-secondary">{{ practice.emergency_type }}</span>
+                    </div>
+                    <div class="d-grid">
+                        <a href="{{ url_for('first_aid_detail', practice_id=practice.id) }}" class="btn btn-success">
+                            <i class="fas fa-book-open me-2"></i>View Guide
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="fas fa-video me-1"></i>Includes video instructions
+                        <span class="float-end">
+                            <i class="fas fa-clock me-1"></i>5-10 min read
+                        </span>
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Emergency Contact Info -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Important Reminder</h5>
+                <p class="mb-0">These guides are for educational purposes. In case of a real emergency, always call emergency services first before attempting first aid.<br>
+                <strong>Fire Rescue: 118 | Police: 117 | Ambulance: 119</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Filter functionality
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const category = this.dataset.category;
+
+        // Update active button
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        // Filter cards
+        document.querySelectorAll('.practice-card').forEach(card => {
+            if (category === 'all' || card.dataset.category === category) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Search functionality
+function searchPractices() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+    document.querySelectorAll('.practice-card').forEach(card => {
+        const title = card.querySelector('.card-title').textContent.toLowerCase();
+        const description = card.querySelector('.card-text').textContent.toLowerCase();
+
+        if (title.includes(searchTerm) || description.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Search on Enter key
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchPractices();
+    }
+});
+
+// Set default active filter
+document.querySelector('.filter-btn[data-category="all"]').classList.add('active');
+</script>
+{% endblock %}

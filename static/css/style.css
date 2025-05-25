@@ -1,0 +1,327 @@
+/* Custom Styles for Emergency Response App */
+
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Welcome Page Styles */
+.welcome-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.globe-container {
+    perspective: 1000px;
+}
+
+.globe {
+    display: inline-block;
+    font-size: 8rem;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.spinning {
+    animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
+}
+
+.welcome-message h1 {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #fff !important;
+}
+
+.welcome-message h2 {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    color: #fff !important;
+}
+
+.welcome-message p {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.quick-links a {
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.quick-links a:hover {
+    color: #fff !important;
+    transform: translateY(-2px);
+}
+
+/* Button Styles */
+.btn {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #6610f2);
+    border: none;
+}
+
+/* Card Styles */
+.card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-bottom: none;
+    font-weight: 600;
+}
+
+/* Navigation Styles */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.dropdown-menu {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: none;
+}
+
+.dropdown-item {
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    transform: translateX(5px);
+}
+
+/* First Aid Specific Styles */
+.practice-card {
+    transition: all 0.3s ease;
+}
+
+.practice-card:hover {
+    transform: scale(1.02);
+}
+
+.filter-btn {
+    transition: all 0.3s ease;
+    border-radius: 20px;
+    padding: 8px 16px;
+}
+
+.filter-btn.active {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.step-item {
+    padding: 15px;
+    border-left: 3px solid #28a745;
+    background: rgba(40, 167, 69, 0.05);
+    border-radius: 0 8px 8px 0;
+    transition: all 0.3s ease;
+}
+
+.step-item:hover {
+    background: rgba(40, 167, 69, 0.1);
+    transform: translateX(5px);
+}
+
+.step-number {
+    font-weight: bold;
+    font-size: 1.1rem;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+/* Emergency Banner */
+.emergency-banner {
+    backdrop-filter: blur(10px);
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Alert Styles */
+.alert {
+    border-radius: 12px;
+    border: none;
+}
+
+.alert-danger {
+    background: linear-gradient(45deg, rgba(220, 53, 69, 0.1), rgba(200, 35, 51, 0.1));
+    border-left: 4px solid #dc3545;
+}
+
+.alert-success {
+    background: linear-gradient(45deg, rgba(40, 167, 69, 0.1), rgba(32, 201, 151, 0.1));
+    border-left: 4px solid #28a745;
+}
+
+.alert-info {
+    background: linear-gradient(45deg, rgba(23, 162, 184, 0.1), rgba(102, 16, 242, 0.1));
+    border-left: 4px solid #17a2b8;
+}
+
+/* Form Styles */
+.form-control {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+}
+
+/* Tab Styles */
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+    border-radius: 8px 8px 0 0;
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link.active {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+    border: none;
+}
+
+.nav-tabs .nav-link:hover {
+    border: none;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+/* Footer Styles */
+footer {
+    background: linear-gradient(45deg, #343a40, #495057) !important;
+}
+
+footer a {
+    transition: all 0.3s ease;
+}
+
+footer a:hover {
+    color: #28a745 !important;
+    transform: translateX(3px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .globe {
+        font-size: 5rem;
+    }
+    
+    .welcome-message h1 {
+        font-size: 2.5rem;
+    }
+    
+    .welcome-message h2 {
+        font-size: 1.8rem;
+    }
+    
+    .step-item {
+        padding: 10px;
+    }
+    
+    .step-number {
+        min-width: 35px;
+        min-height: 35px;
+        font-size: 1rem;
+    }
+}
+
+/* Loading Animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+/* Utility Classes */
+.text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.bg-gradient {
+    background: linear-gradient(45deg, var(--bs-primary), var(--bs-info));
+}
+
+.border-gradient {
+    border: 2px solid;
+    border-image: linear-gradient(45deg, #28a745, #20c997) 1;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}

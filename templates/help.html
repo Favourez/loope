@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Help & Support - Emergency Response App{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('landing') }}">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="{{ url_for('landing') }}">
+                <i class="fas fa-home me-1"></i>Home
+            </a>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-5 text-primary">
+                    <i class="fas fa-question-circle me-3"></i>Help & Support
+                </h1>
+                <p class="lead">Get assistance and learn how to use the Emergency Response App</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Help -->
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-lg" id="helpSearch" placeholder="Search for help topics...">
+                <button class="btn btn-primary" onclick="searchHelp()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Help Categories -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-fire fa-3x text-danger mb-3"></i>
+                    <h5>Emergency Reporting</h5>
+                    <p>Learn how to report emergencies quickly and effectively</p>
+                    <button class="btn btn-danger" onclick="showHelp('emergency')">Learn More</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-first-aid fa-3x text-success mb-3"></i>
+                    <h5>First Aid Guides</h5>
+                    <p>Understanding and using our first aid resources</p>
+                    <button class="btn btn-success" onclick="showHelp('firstaid')">Learn More</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-map fa-3x text-info mb-3"></i>
+                    <h5>Using the Map</h5>
+                    <p>Navigate and understand emergency locations</p>
+                    <button class="btn btn-info" onclick="showHelp('map')">Learn More</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-cog fa-3x text-secondary mb-3"></i>
+                    <h5>App Settings</h5>
+                    <p>Customize your app experience and preferences</p>
+                    <button class="btn btn-secondary" onclick="showHelp('settings')">Learn More</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="row">
+        <div class="col-lg-8">
+            <h3 class="mb-4">Frequently Asked Questions</h3>
+
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq1">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                            How do I report a fire emergency?
+                        </button>
+                    </h2>
+                    <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <strong>To report a fire emergency:</strong>
+                            <ol>
+                                <li>Go to the main dashboard</li>
+                                <li>Fill out the emergency reporting form with location and details</li>
+                                <li>Select the appropriate severity level</li>
+                                <li>Click "Report Emergency" to submit</li>
+                            </ol>
+                            <div class="alert alert-danger mt-3">
+                                <strong>Important:</strong> In case of immediate danger, call emergency services first!<br>
+                                <strong>Fire Rescue: 118 | Police: 117 | Ambulance: 119</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq2">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                            How do I access first aid guides?
+                        </button>
+                    </h2>
+                    <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            You can access first aid guides in several ways:
+                            <ul>
+                                <li>Click "View First Aid Guides" on the main dashboard</li>
+                                <li>Use the quick access buttons for common emergencies (CPR, Choking, etc.)</li>
+                                <li>Search for specific procedures using the search function</li>
+                                <li>Filter guides by emergency type</li>
+                            </ul>
+                            Each guide includes step-by-step instructions, video demonstrations, and important safety tips.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq3">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                            What do the map symbols mean?
+                        </button>
+                    </h2>
+                    <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            The emergency map uses these symbols:
+                            <ul>
+                                <li><i class="fas fa-fire text-danger"></i> Red fire icon: Active fire emergencies</li>
+                                <li><i class="fas fa-hospital text-info"></i> Blue hospital icon: Medical facilities</li>
+                                <li><i class="fas fa-truck text-warning"></i> Yellow truck icon: Fire stations</li>
+                                <li><i class="fas fa-map-marker-alt text-success"></i> Green marker: Your current location</li>
+                            </ul>
+                            You can toggle these layers on/off using the buttons above the map.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq4">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
+                            How do I receive emergency alerts?
+                        </button>
+                    </h2>
+                    <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Emergency alerts are automatically sent to all users in affected areas. To ensure you receive them:
+                            <ul>
+                                <li>Enable location services for the app</li>
+                                <li>Allow push notifications in your browser/device settings</li>
+                                <li>Check the Messages section regularly for updates</li>
+                                <li>Keep your contact information updated in Settings</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq5">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5">
+                            Is my personal information secure?
+                        </button>
+                    </h2>
+                    <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes, we take your privacy and security seriously:
+                            <ul>
+                                <li>All data is encrypted in transit and at rest</li>
+                                <li>Location data is only used for emergency services</li>
+                                <li>We never share personal information with third parties</li>
+                                <li>You can review our full privacy policy for details</li>
+                            </ul>
+                            <a href="{{ url_for('privacy') }}" class="btn btn-sm btn-outline-primary">Read Privacy Policy</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Support -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-headset me-2"></i>Contact Support</h5>
+                </div>
+                <div class="card-body">
+                    <p>Need additional help? Our support team is here for you.</p>
+
+                    <div class="mb-3">
+                        <strong>Email Support</strong><br>
+                        <a href="mailto:support@emergencyapp.com">support@emergencyapp.com</a>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Phone Support</strong><br>
+                        <a href="tel:+237-HELP-118">+237-HELP-118</a><br>
+                        <small class="text-muted">Available 24/7</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Live Chat</strong><br>
+                        <button class="btn btn-success btn-sm" onclick="startLiveChat()">
+                            <i class="fas fa-comments me-1"></i>Start Chat
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('guidelines') }}">App Guidelines</a></li>
+                        <li><a href="{{ url_for('privacy') }}">Privacy Policy</a></li>
+                        <li><a href="#" onclick="reportBug()">Report a Bug</a></li>
+                        <li><a href="#" onclick="requestFeature()">Request Feature</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Emergency Reminder -->
+            <div class="card mt-3 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Emergency Reminder</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">This app is for assistance and education. In case of a real emergency:</p>
+                    <div class="d-grid gap-2">
+                        <a href="tel:118" class="btn btn-danger">
+                            <i class="fas fa-fire me-2"></i>Fire Rescue: 118
+                        </a>
+                        <a href="tel:117" class="btn btn-primary">
+                            <i class="fas fa-shield-alt me-2"></i>Police: 117
+                        </a>
+                        <a href="tel:119" class="btn btn-success">
+                            <i class="fas fa-ambulance me-2"></i>Ambulance: 119
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function searchHelp() {
+    const query = document.getElementById('helpSearch').value;
+    if (query) {
+        alert(`Searching for: "${query}"\n\nIn a real implementation, this would search through help articles and FAQs.`);
+    }
+}
+
+function showHelp(category) {
+    const helpContent = {
+        emergency: "Emergency Reporting Help:\n\n1. Fill out the location field accurately\n2. Provide a clear description\n3. Select appropriate severity\n4. Submit the report\n\nRemember: Call 911 for immediate emergencies!",
+        firstaid: "First Aid Guides Help:\n\n1. Browse by category or search\n2. Follow step-by-step instructions\n3. Watch video demonstrations\n4. Read safety warnings\n\nAlways call emergency services first!",
+        map: "Map Usage Help:\n\n1. Use search to find locations\n2. Toggle different layers (fires, hospitals, etc.)\n3. Click markers for details\n4. Use 'My Location' for current position",
+        settings: "Settings Help:\n\n1. Update your profile information\n2. Set notification preferences\n3. Configure location settings\n4. Manage privacy options"
+    };
+
+    alert(helpContent[category] || "Help content not available for this topic.");
+}
+
+function startLiveChat() {
+    alert("Live chat would open here in a real implementation.\n\nFor now, please use email or phone support.");
+}
+
+function reportBug() {
+    const bug = prompt("Please describe the bug you encountered:");
+    if (bug) {
+        alert("Thank you for reporting the bug. Our team will investigate and fix it soon.");
+    }
+}
+
+function requestFeature() {
+    const feature = prompt("What feature would you like to see added?");
+    if (feature) {
+        alert("Thank you for your suggestion! We'll consider it for future updates.");
+    }
+}
+
+// Search on Enter key
+document.getElementById('helpSearch').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchHelp();
+    }
+});
+</script>
+{% endblock %}

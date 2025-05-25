@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - Emergency Response App{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-5 text-primary">
+                    <i class="fas fa-shield-alt me-3"></i>Privacy Policy
+                </h1>
+                <p class="lead">Your privacy and data protection are our top priorities</p>
+                <small class="text-muted">Last updated: December 2024</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Back Button -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{{ url_for('welcome') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Welcome
+            </a>
+        </div>
+    </div>
+    
+    <!-- Privacy Policy Content -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h3>1. Information We Collect</h3>
+                    <p>We collect information to provide better emergency response services:</p>
+                    <ul>
+                        <li><strong>Personal Information:</strong> Name, email, phone number, emergency contacts</li>
+                        <li><strong>Location Data:</strong> GPS coordinates for emergency reporting and alerts</li>
+                        <li><strong>Emergency Reports:</strong> Details of reported emergencies for response coordination</li>
+                        <li><strong>Usage Data:</strong> App usage patterns to improve functionality</li>
+                    </ul>
+                    
+                    <h3 class="mt-4">2. How We Use Your Information</h3>
+                    <p>Your information is used exclusively for emergency response purposes:</p>
+                    <ul>
+                        <li>Sending emergency alerts relevant to your location</li>
+                        <li>Coordinating emergency response services</li>
+                        <li>Providing first aid guidance and resources</li>
+                        <li>Improving app functionality and user experience</li>
+                        <li>Communicating important safety information</li>
+                    </ul>
+                    
+                    <h3 class="mt-4">3. Information Sharing</h3>
+                    <p>We share information only when necessary for emergency response:</p>
+                    <ul>
+                        <li><strong>Emergency Services:</strong> Location and emergency details during active incidents</li>
+                        <li><strong>Local Authorities:</strong> Aggregated data for emergency planning (anonymized)</li>
+                        <li><strong>Healthcare Providers:</strong> Medical information during medical emergencies (with consent)</li>
+                        <li><strong>Legal Requirements:</strong> When required by law or court order</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Important:</strong> We never sell your personal information to third parties.
+                    </div>
+                    
+                    <h3 class="mt-4">4. Data Security</h3>
+                    <p>We implement robust security measures to protect your data:</p>
+                    <ul>
+                        <li>End-to-end encryption for all data transmission</li>
+                        <li>Secure servers with regular security audits</li>
+                        <li>Access controls limiting who can view your information</li>
+                        <li>Regular backups to prevent data loss</li>
+                        <li>Compliance with industry security standards</li>
+                    </ul>
+                    
+                    <h3 class="mt-4">5. Location Privacy</h3>
+                    <p>Location data is handled with special care:</p>
+                    <ul>
+                        <li>Location is only accessed when you use emergency features</li>
+                        <li>You can disable location services at any time</li>
+                        <li>Location history is automatically deleted after 30 days</li>
+                        <li>Precise location is only shared during active emergencies</li>
+                    </ul>
+                    
+                    <h3 class="mt-4">6. Your Rights</h3>
+                    <p>You have the following rights regarding your data:</p>
+                    <ul>
+                        <li><strong>Access:</strong> Request a copy of your personal data</li>
+                        <li><strong>Correction:</strong> Update or correct your information</li>
+                        <li><strong>Deletion:</strong> Request deletion of your account and data</li>
+                        <li><strong>Portability:</strong> Export your data in a readable format</li>
+                        <li><strong>Opt-out:</strong> Unsubscribe from non-emergency communications</li>
+                    </ul>
+                    
+                    <h3 class="mt-4">7. Data Retention</h3>
+                    <p>We retain data only as long as necessary:</p>
+                    <ul>
+                        <li>Emergency reports: 7 years (for analysis and improvement)</li>
+                        <li>Location data: 30 days (for alert relevance)</li>
+                        <li>Account information: Until account deletion</li>
+                        <li>Usage analytics: 2 years (anonymized)</li>
+                    </ul>
+                    
+                    <h3 class="mt-4">8. Children's Privacy</h3>
+                    <p>This app is designed for users 13 years and older. We do not knowingly collect personal information from children under 13. If you believe a child has provided personal information, please contact us immediately.</p>
+                    
+                    <h3 class="mt-4">9. International Users</h3>
+                    <p>If you're using this app outside the United States, please note that your information may be transferred to and processed in the United States, where our servers are located.</p>
+                    
+                    <h3 class="mt-4">10. Changes to This Policy</h3>
+                    <p>We may update this privacy policy to reflect changes in our practices or legal requirements. We will notify you of significant changes through the app or email.</p>
+                    
+                    <h3 class="mt-4">11. Contact Us</h3>
+                    <p>If you have questions about this privacy policy or your data:</p>
+                    <ul>
+                        <li><strong>Email:</strong> privacy@emergencyapp.com</li>
+                        <li><strong>Phone:</strong> 1-800-PRIVACY</li>
+                        <li><strong>Mail:</strong> Emergency Response App, Privacy Office, 123 Safety Street, Emergency City, EC 12345</li>
+                    </ul>
+                    
+                    <div class="alert alert-success mt-4">
+                        <h5><i class="fas fa-check-circle me-2"></i>Our Commitment</h5>
+                        <p class="mb-0">We are committed to protecting your privacy while providing life-saving emergency services. Your trust is essential to our mission of keeping communities safe.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>Privacy Quick Actions</h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-primary w-100" onclick="downloadPrivacyData()">
+                                <i class="fas fa-download me-2"></i>Download My Data
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-info w-100" onclick="updatePrivacySettings()">
+                                <i class="fas fa-cog me-2"></i>Privacy Settings
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-warning w-100" onclick="contactPrivacyTeam()">
+                                <i class="fas fa-envelope me-2"></i>Contact Privacy Team
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('guidelines') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-book me-2"></i>App Guidelines
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function downloadPrivacyData() {
+    alert('Your privacy data download request has been submitted. You will receive an email with your data within 24 hours.');
+}
+
+function updatePrivacySettings() {
+    if (confirm('Would you like to go to the privacy settings page?')) {
+        window.location.href = "{{ url_for('settings') }}#privacy";
+    }
+}
+
+function contactPrivacyTeam() {
+    const message = prompt('What privacy question or concern would you like to share with our team?');
+    if (message) {
+        alert('Your message has been sent to our privacy team. We will respond within 48 hours.');
+    }
+}
+</script>
+{% endblock %}

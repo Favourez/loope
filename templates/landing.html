@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Emergency Response App{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('landing') }}">
+            <i class="fas fa-shield-alt me-2"></i>Emergency Response
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v me-1"></i>Menu
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('map_page') }}">
+                            <i class="fas fa-map-marked-alt me-2"></i>Map
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('messages') }}">
+                            <i class="fas fa-comments me-2"></i>Messages
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('help_page') }}">
+                            <i class="fas fa-question-circle me-2"></i>Help
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('settings') }}">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Emergency Alert Banner -->
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Emergency Hotlines:</strong> Fire Rescue: 118 | Police: 117 | Ambulance: 119
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="row">
+        <!-- Fire Emergency Reporting -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-fire me-2"></i>Fire Emergency Reporting
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Report fire emergencies in your area quickly and efficiently.</p>
+                    <form id="emergencyForm">
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" placeholder="Enter emergency location" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Describe the emergency"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="severity" class="form-label">Severity Level</label>
+                            <select class="form-select" id="severity">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-danger btn-lg w-100">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Report Emergency
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- First Aid Section -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-first-aid me-2"></i>First Aid Guidance
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Access comprehensive first aid guides and emergency procedures.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('first_aid') }}" class="btn btn-success btn-lg">
+                            <i class="fas fa-book-medical me-2"></i>View First Aid Guides
+                        </a>
+                        <button class="btn btn-outline-success" onclick="quickFirstAid()">
+                            <i class="fas fa-search me-2"></i>Quick Search
+                        </button>
+                    </div>
+
+                    <!-- Quick Access First Aid -->
+                    <div class="mt-3">
+                        <h6>Quick Access:</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <a href="{{ url_for('first_aid_detail', practice_id=1) }}" class="btn btn-sm btn-outline-danger w-100 mb-2">CPR</a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('first_aid_detail', practice_id=2) }}" class="btn btn-sm btn-outline-warning w-100 mb-2">Choking</a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('first_aid_detail', practice_id=3) }}" class="btn btn-sm btn-outline-info w-100 mb-2">Burns</a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('first_aid_detail', practice_id=4) }}" class="btn btn-sm btn-outline-secondary w-100 mb-2">Bleeding</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <i class="fas fa-map-marker-alt fa-2x mb-2"></i>
+                    <h5>24/7</h5>
+                    <p class="mb-0">Emergency Coverage</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h5>10+</h5>
+                    <p class="mb-0">First Aid Guides</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <h5>&lt;2 min</h5>
+                    <p class="mb-0">Response Time</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                    <h5>100%</h5>
+                    <p class="mb-0">Secure & Private</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('emergencyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = {
+        location: document.getElementById('location').value,
+        description: document.getElementById('description').value,
+        severity: document.getElementById('severity').value,
+        timestamp: new Date().toISOString()
+    };
+
+    fetch('/report-emergency', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Emergency reported successfully! Emergency services have been notified.');
+        this.reset();
+    })
+    .catch(error => {
+        alert('Error reporting emergency. Please try again or call emergency services directly.');
+    });
+});
+
+function quickFirstAid() {
+    const search = prompt('What type of emergency are you dealing with?');
+    if (search) {
+        window.location.href = "{{ url_for('first_aid') }}?search=" + encodeURIComponent(search);
+    }
+}
+</script>
+{% endblock %}

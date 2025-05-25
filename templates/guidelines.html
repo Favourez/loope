@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Guidelines - Emergency Response App{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-5 text-primary">
+                    <i class="fas fa-book me-3"></i>App Guidelines
+                </h1>
+                <p class="lead">Important guidelines for safe and effective use of the Emergency Response App</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{{ url_for('welcome') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Welcome
+            </a>
+        </div>
+    </div>
+
+    <!-- Guidelines Content -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Emergency Guidelines -->
+            <div class="card mb-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Emergency Response Guidelines</h4>
+                </div>
+                <div class="card-body">
+                    <h5>🚨 CRITICAL: Call Emergency Services First</h5>
+                    <div class="alert alert-danger">
+                        <strong>In any life-threatening emergency, ALWAYS call Cameroon emergency services first:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>🔥 <strong>Fire Rescue: 118</strong></li>
+                            <li>👮 <strong>Police: 117</strong></li>
+                            <li>🚑 <strong>Ambulance: 119</strong></li>
+                        </ul>
+                    </div>
+
+                    <h6>When to Use This App:</h6>
+                    <ul>
+                        <li>✅ Reporting non-life-threatening fire incidents</li>
+                        <li>✅ Learning first aid procedures</li>
+                        <li>✅ Receiving emergency alerts in your area</li>
+                        <li>✅ Finding nearby emergency resources</li>
+                        <li>✅ Sharing emergency information with others</li>
+                    </ul>
+
+                    <h6>When NOT to Rely Solely on This App:</h6>
+                    <ul>
+                        <li>❌ Active house fires with people trapped</li>
+                        <li>❌ Medical emergencies requiring immediate attention</li>
+                        <li>❌ Any situation where seconds count</li>
+                        <li>❌ When you need immediate professional emergency response</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- First Aid Guidelines -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-first-aid me-2"></i>First Aid Guidelines</h4>
+                </div>
+                <div class="card-body">
+                    <h6>Before Providing First Aid:</h6>
+                    <ol>
+                        <li><strong>Ensure Scene Safety:</strong> Make sure the area is safe for you and the victim</li>
+                        <li><strong>Call for Help:</strong> Call emergency services if the situation is serious</li>
+                        <li><strong>Get Consent:</strong> Ask permission before helping a conscious person</li>
+                        <li><strong>Use Universal Precautions:</strong> Protect yourself from bloodborne pathogens</li>
+                    </ol>
+
+                    <h6>Important Reminders:</h6>
+                    <ul>
+                        <li>🩹 These guides are for educational purposes only</li>
+                        <li>📚 Consider taking a certified first aid course</li>
+                        <li>🔄 Practice techniques regularly to maintain skills</li>
+                        <li>📱 Keep emergency numbers easily accessible</li>
+                        <li>🧤 Always use protective equipment when available</li>
+                    </ul>
+
+                    <div class="alert alert-warning">
+                        <strong>Disclaimer:</strong> First aid information in this app is not a substitute for professional medical training or emergency medical services.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reporting Guidelines -->
+            <div class="card mb-4 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-flag me-2"></i>Emergency Reporting Guidelines</h4>
+                </div>
+                <div class="card-body">
+                    <h6>How to Report Effectively:</h6>
+                    <ol>
+                        <li><strong>Be Accurate:</strong> Provide precise location information</li>
+                        <li><strong>Be Clear:</strong> Describe the emergency clearly and concisely</li>
+                        <li><strong>Be Honest:</strong> Only report real emergencies</li>
+                        <li><strong>Be Available:</strong> Stay available for follow-up questions</li>
+                    </ol>
+
+                    <h6>Information to Include:</h6>
+                    <ul>
+                        <li>📍 Exact location (address, landmarks, GPS coordinates)</li>
+                        <li>🔥 Type and size of fire or emergency</li>
+                        <li>👥 Number of people involved or at risk</li>
+                        <li>🚧 Any hazards or obstacles for responders</li>
+                        <li>📞 Your contact information</li>
+                    </ul>
+
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> False emergency reports are illegal and can result in serious consequences, including fines and criminal charges.
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Usage Guidelines -->
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>App Usage Guidelines</h4>
+                </div>
+                <div class="card-body">
+                    <h6>Best Practices:</h6>
+                    <ul>
+                        <li>🔋 Keep your device charged, especially during emergencies</li>
+                        <li>📶 Ensure you have a reliable internet connection</li>
+                        <li>📍 Enable location services for accurate emergency alerts</li>
+                        <li>🔔 Allow push notifications for emergency alerts</li>
+                        <li>📱 Familiarize yourself with the app before an emergency</li>
+                        <li>👥 Share the app with family and friends</li>
+                    </ul>
+
+                    <h6>Privacy and Security:</h6>
+                    <ul>
+                        <li>🔒 Your personal information is encrypted and secure</li>
+                        <li>📍 Location data is only used for emergency purposes</li>
+                        <li>🚫 We never share your data with unauthorized parties</li>
+                        <li>⚙️ You can adjust privacy settings at any time</li>
+                    </ul>
+
+                    <h6>Technical Requirements:</h6>
+                    <ul>
+                        <li>📱 Compatible with modern web browsers</li>
+                        <li>🌐 Internet connection required for most features</li>
+                        <li>📍 GPS/location services recommended</li>
+                        <li>🔊 Audio enabled for emergency alerts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Legal and Liability -->
+            <div class="card mb-4 border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0"><i class="fas fa-gavel me-2"></i>Legal Guidelines</h4>
+                </div>
+                <div class="card-body">
+                    <h6>Terms of Use:</h6>
+                    <ul>
+                        <li>📋 By using this app, you agree to our terms of service</li>
+                        <li>🎯 Use the app only for its intended emergency response purposes</li>
+                        <li>🚫 Do not use the app for illegal activities</li>
+                        <li>👤 You are responsible for the accuracy of information you provide</li>
+                    </ul>
+
+                    <h6>Liability Limitations:</h6>
+                    <ul>
+                        <li>⚠️ This app is a tool to assist in emergencies, not replace professional services</li>
+                        <li>🏥 We are not liable for medical outcomes from first aid information</li>
+                        <li>📱 Technical issues may occur; always have backup emergency plans</li>
+                        <li>⏱️ Response times may vary based on location and circumstances</li>
+                    </ul>
+
+                    <div class="alert alert-secondary">
+                        <strong>Good Samaritan Laws:</strong> Many jurisdictions have laws protecting people who provide emergency assistance in good faith. However, always act within your training and capabilities.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Guidelines -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-users me-2"></i>Community Guidelines</h4>
+                </div>
+                <div class="card-body">
+                    <h6>Building a Safer Community:</h6>
+                    <ul>
+                        <li>🤝 Help others learn about emergency preparedness</li>
+                        <li>📢 Share accurate emergency information</li>
+                        <li>🎓 Participate in community safety training</li>
+                        <li>💬 Provide constructive feedback to improve the app</li>
+                        <li>🌟 Be respectful in all interactions</li>
+                    </ul>
+
+                    <h6>Prohibited Activities:</h6>
+                    <ul>
+                        <li>❌ Sharing false or misleading emergency information</li>
+                        <li>❌ Using the app to harass or threaten others</li>
+                        <li>❌ Attempting to hack or compromise the system</li>
+                        <li>❌ Sharing personal information of others without consent</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-lg-10 mx-auto">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>Quick Actions</h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('first_aid') }}" class="btn btn-success w-100">
+                                <i class="fas fa-first-aid me-2"></i>First Aid Guides
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('help_page') }}" class="btn btn-info w-100">
+                                <i class="fas fa-question-circle me-2"></i>Get Help
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('privacy') }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-shield-alt me-2"></i>Privacy Policy
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('landing') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-home me-2"></i>Go to App
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Add any interactive features for guidelines
+document.addEventListener('DOMContentLoaded', function() {
+    // Highlight important sections
+    const alerts = document.querySelectorAll('.alert-danger');
+    alerts.forEach(alert => {
+        alert.style.animation = 'pulse 2s infinite';
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Emergency Response App{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('landing') }}">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+        
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="{{ url_for('landing') }}">
+                <i class="fas fa-home me-1"></i>Home
+            </a>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-5 text-primary">
+                    <i class="fas fa-cog me-3"></i>Settings
+                </h1>
+                <p class="lead">Customize your Emergency Response App experience</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Tabs -->
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">
+                        <i class="fas fa-user me-2"></i>Profile
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button">
+                        <i class="fas fa-map-marker-alt me-2"></i>Location
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="privacy-tab" data-bs-toggle="tab" data-bs-target="#privacy" type="button">
+                        <i class="fas fa-shield-alt me-2"></i>Privacy
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content mt-4" id="settingsTabsContent">
+                <!-- Profile Settings -->
+                <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Profile Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="profileForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="firstName" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="firstName" value="John">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lastName" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="lastName" value="Doe">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" value="john.doe@example.com">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" value="+1 (555) 123-4567">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Home Address</label>
+                                    <textarea class="form-control" id="address" rows="2">123 Main Street, Anytown, ST 12345</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                                    <input type="text" class="form-control" id="emergencyContact" value="Jane Doe - +1 (555) 987-6543">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Profile</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification Settings -->
+                <div class="tab-pane fade" id="notifications" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Notification Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="notificationForm">
+                                <h6 class="mb-3">Emergency Alerts</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emergencyAlerts" checked>
+                                    <label class="form-check-label" for="emergencyAlerts">
+                                        Receive emergency alerts in my area
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="criticalAlerts" checked>
+                                    <label class="form-check-label" for="criticalAlerts">
+                                        Receive critical emergency alerts (cannot be disabled)
+                                    </label>
+                                </div>
+                                
+                                <h6 class="mb-3 mt-4">Weather Alerts</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="weatherAlerts" checked>
+                                    <label class="form-check-label" for="weatherAlerts">
+                                        Receive weather-related emergency alerts
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="severeWeather" checked>
+                                    <label class="form-check-label" for="severeWeather">
+                                        Receive severe weather warnings
+                                    </label>
+                                </div>
+                                
+                                <h6 class="mb-3 mt-4">App Updates</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="appUpdates">
+                                    <label class="form-check-label" for="appUpdates">
+                                        Receive app update notifications
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="communityMessages">
+                                    <label class="form-check-label" for="communityMessages">
+                                        Receive community safety messages
+                                    </label>
+                                </div>
+                                
+                                <h6 class="mb-3 mt-4">Notification Methods</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+                                    <label class="form-check-label" for="pushNotifications">
+                                        Push notifications
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications">
+                                    <label class="form-check-label" for="emailNotifications">
+                                        Email notifications
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="smsNotifications">
+                                    <label class="form-check-label" for="smsNotifications">
+                                        SMS notifications
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Location Settings -->
+                <div class="tab-pane fade" id="location" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Location Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="locationForm">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Location services help us provide accurate emergency alerts and find nearby resources.
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="locationServices" checked>
+                                    <label class="form-check-label" for="locationServices">
+                                        Enable location services
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="backgroundLocation">
+                                    <label class="form-check-label" for="backgroundLocation">
+                                        Allow background location access
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="shareLocation">
+                                    <label class="form-check-label" for="shareLocation">
+                                        Share location with emergency services when reporting
+                                    </label>
+                                </div>
+                                
+                                <h6 class="mb-3 mt-4">Alert Radius</h6>
+                                <div class="mb-3">
+                                    <label for="alertRadius" class="form-label">Receive alerts within: <span id="radiusValue">5</span> miles</label>
+                                    <input type="range" class="form-range" id="alertRadius" min="1" max="25" value="5" oninput="updateRadius(this.value)">
+                                    <div class="d-flex justify-content-between">
+                                        <small>1 mile</small>
+                                        <small>25 miles</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="currentLocation" class="form-label">Current Location</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="currentLocation" value="Detecting..." readonly>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="detectLocation()">
+                                            <i class="fas fa-crosshairs"></i> Detect
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Location Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Privacy Settings -->
+                <div class="tab-pane fade" id="privacy" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Privacy & Security</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="privacyForm">
+                                <h6 class="mb-3">Data Sharing</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="shareAnalytics">
+                                    <label class="form-check-label" for="shareAnalytics">
+                                        Share anonymous usage analytics to improve the app
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="shareReports">
+                                    <label class="form-check-label" for="shareReports">
+                                        Share emergency reports with local authorities
+                                    </label>
+                                </div>
+                                
+                                <h6 class="mb-3 mt-4">Account Security</h6>
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-outline-primary" onclick="changePassword()">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </button>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="twoFactor">
+                                    <label class="form-check-label" for="twoFactor">
+                                        Enable two-factor authentication
+                                    </label>
+                                </div>
+                                
+                                <h6 class="mb-3 mt-4">Data Management</h6>
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-outline-info" onclick="downloadData()">
+                                        <i class="fas fa-download me-2"></i>Download My Data
+                                    </button>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-outline-warning" onclick="clearData()">
+                                        <i class="fas fa-trash me-2"></i>Clear App Data
+                                    </button>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-outline-danger" onclick="deleteAccount()">
+                                        <i class="fas fa-user-times me-2"></i>Delete Account
+                                    </button>
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Note:</strong> Some privacy settings may affect the app's ability to provide emergency services.
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Privacy Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Form submission handlers
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('Profile updated successfully!');
+});
+
+document.getElementById('notificationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('Notification settings saved!');
+});
+
+document.getElementById('locationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('Location settings saved!');
+});
+
+document.getElementById('privacyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('Privacy settings saved!');
+});
+
+// Location functions
+function updateRadius(value) {
+    document.getElementById('radiusValue').textContent = value;
+}
+
+function detectLocation() {
+    const locationInput = document.getElementById('currentLocation');
+    locationInput.value = 'Detecting location...';
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                locationInput.value = `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+            },
+            function(error) {
+                locationInput.value = 'Location detection failed';
+            }
+        );
+    } else {
+        locationInput.value = 'Geolocation not supported';
+    }
+}
+
+// Privacy functions
+function changePassword() {
+    const newPassword = prompt('Enter new password:');
+    if (newPassword) {
+        alert('Password changed successfully!');
+    }
+}
+
+function downloadData() {
+    alert('Your data download will begin shortly. You will receive an email when it\'s ready.');
+}
+
+function clearData() {
+    if (confirm('Are you sure you want to clear all app data? This action cannot be undone.')) {
+        alert('App data cleared successfully!');
+    }
+}
+
+function deleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.')) {
+        const confirmation = prompt('Type "DELETE" to confirm account deletion:');
+        if (confirmation === 'DELETE') {
+            alert('Account deletion request submitted. You will receive a confirmation email.');
+        }
+    }
+}
+
+// Auto-detect location on page load
+setTimeout(detectLocation, 1000);
+</script>
+{% endblock %}
