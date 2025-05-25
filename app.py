@@ -193,8 +193,8 @@ def health_check():
         'timestamp': datetime.now().isoformat(),
         'version': '1.0.0',
         'active_users': len(active_users),
-        'total_emergency_reports': int(emergency_reports_total._value.sum()),
-        'system_health_score': system_health_gauge._value._value
+        'total_emergency_reports': sum(emergency_reports_total._value.values()) if hasattr(emergency_reports_total, '_value') else 0,
+        'system_health_score': system_health_gauge._value._value if hasattr(system_health_gauge, '_value') else 100
     }
     return jsonify(health_status)
 
@@ -207,12 +207,17 @@ def metrics_endpoint():
 @app.before_request
 def before_request():
     # Update system health score based on various factors
-    base_health = 95
-    emergency_impact = min(30, emergency_reports_total._value.sum() * 2)
-    user_load_impact = min(10, len(active_users) * 0.5)
+    try:
+        base_health = 95
+        total_reports = sum(emergency_reports_total._value.values()) if hasattr(emergency_reports_total, '_value') else 0
+        emergency_impact = min(30, total_reports * 2)
+        user_load_impact = min(10, len(active_users) * 0.5)
 
-    current_health = max(0, base_health - emergency_impact - user_load_impact)
-    system_health_gauge.set(current_health)
+        current_health = max(0, base_health - emergency_impact - user_load_impact)
+        system_health_gauge.set(current_health)
+    except Exception as e:
+        # Fallback to default health if calculation fails
+        system_health_gauge.set(95)
 
 if __name__ == '__main__':
     # Set initial system health
