@@ -121,6 +121,11 @@ def map_page():
     page_views_total.labels(page='map').inc()
     return render_template('map.html')
 
+@app.route('/test-map')
+def test_map():
+    with open('test_map.html', 'r') as f:
+        return f.read()
+
 @app.route('/messages')
 def messages():
     page_views_total.labels(page='messages').inc()
@@ -202,6 +207,101 @@ def health_check():
 def metrics_endpoint():
     """Prometheus metrics endpoint"""
     return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
+@app.route('/api/map-data')
+def get_map_data():
+    """API endpoint to get map data for emergencies, hospitals, and fire stations"""
+    map_data = {
+        'emergencies': [
+            {
+                'id': 1,
+                'type': 'fire',
+                'title': 'House Fire',
+                'location': 'Bastos, Yaoundé',
+                'coordinates': [3.8691, 11.5174],
+                'severity': 'high',
+                'time': '15 minutes ago',
+                'description': 'Residential fire in Bastos neighborhood',
+                'status': 'active'
+            },
+            {
+                'id': 2,
+                'type': 'fire',
+                'title': 'Vehicle Fire',
+                'location': 'Douala Port',
+                'coordinates': [4.0511, 9.7679],
+                'severity': 'medium',
+                'time': '32 minutes ago',
+                'description': 'Vehicle fire near port area',
+                'status': 'responding'
+            },
+            {
+                'id': 3,
+                'type': 'fire',
+                'title': 'Brush Fire',
+                'location': 'Bamenda Hills',
+                'coordinates': [5.9631, 10.1591],
+                'severity': 'low',
+                'time': '1 hour ago',
+                'description': 'Small brush fire on hillside',
+                'status': 'contained'
+            }
+        ],
+        'hospitals': [
+            {
+                'name': 'Yaoundé Central Hospital',
+                'coordinates': [3.8634, 11.5167],
+                'type': 'General Hospital',
+                'emergency': True,
+                'phone': '119'
+            },
+            {
+                'name': 'Douala General Hospital',
+                'coordinates': [4.0435, 9.7043],
+                'type': 'General Hospital',
+                'emergency': True,
+                'phone': '119'
+            },
+            {
+                'name': 'Bamenda Regional Hospital',
+                'coordinates': [5.9597, 10.1463],
+                'type': 'Regional Hospital',
+                'emergency': True,
+                'phone': '119'
+            },
+            {
+                'name': 'Garoua Regional Hospital',
+                'coordinates': [9.3265, 13.3981],
+                'type': 'Regional Hospital',
+                'emergency': True,
+                'phone': '119'
+            }
+        ],
+        'fire_stations': [
+            {
+                'name': 'Yaoundé Fire Station',
+                'coordinates': [3.8480, 11.5021],
+                'type': 'Main Station',
+                'phone': '118',
+                'vehicles': 5
+            },
+            {
+                'name': 'Douala Fire Station',
+                'coordinates': [4.0511, 9.7679],
+                'type': 'Port Station',
+                'phone': '118',
+                'vehicles': 8
+            },
+            {
+                'name': 'Bamenda Fire Station',
+                'coordinates': [5.9631, 10.1591],
+                'type': 'Regional Station',
+                'phone': '118',
+                'vehicles': 3
+            }
+        ]
+    }
+    return jsonify(map_data)
 
 # Background task to simulate system health updates
 @app.before_request

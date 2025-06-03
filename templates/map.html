@@ -2,13 +2,98 @@
 
 {% block title %}Emergency Map - Emergency Response App{% endblock %}
 
+{% block extra_head %}
+<!-- Leaflet CSS for OpenStreetMap -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<!-- Custom Map Styles -->
+<style>
+.map-container {
+    position: relative;
+}
+
+.map-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.emergency-marker {
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.fire-marker { background-color: #dc3545; }
+.hospital-marker { background-color: #17a2b8; }
+.station-marker { background-color: #ffc107; }
+.user-marker { background-color: #28a745; }
+
+.user-location-marker {
+    background-color: #28a745;
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse-location 2s infinite;
+}
+
+@keyframes pulse-location {
+    0% {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 10px rgba(40, 167, 69, 0);
+    }
+    100% {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 0 rgba(40, 167, 69, 0);
+    }
+}
+
+.leaflet-popup-content {
+    margin: 8px 12px;
+    line-height: 1.4;
+}
+
+.popup-title {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.popup-details {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.popup-actions {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.popup-actions .btn {
+    margin: 2px;
+    padding: 4px 8px;
+    font-size: 0.8em;
+}
+</style>
+{% endblock %}
+
 {% block navbar %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
         <a class="navbar-brand" href="{{ url_for('landing') }}">
             <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
         </a>
-        
+
         <div class="navbar-nav ms-auto">
             <a class="nav-link" href="{{ url_for('landing') }}">
                 <i class="fas fa-home me-1"></i>Home
@@ -31,7 +116,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Map Controls -->
     <div class="row mb-3">
         <div class="col-md-8">
@@ -59,27 +144,24 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Map Container -->
     <div class="row">
         <div class="col-lg-9">
-            <div class="card">
-                <div class="card-body p-0">
-                    <div id="map" style="height: 500px; background: linear-gradient(45deg, #e3f2fd, #f3e5f5); display: flex; align-items: center; justify-content: center;">
-                        <div class="text-center">
-                            <i class="fas fa-map fa-4x text-muted mb-3"></i>
-                            <h4 class="text-muted">Interactive Map</h4>
-                            <p class="text-muted">Map integration would be implemented here<br>
-                            (Google Maps, OpenStreetMap, etc.)</p>
-                            <button class="btn btn-primary" onclick="initializeMap()">
-                                <i class="fas fa-play me-2"></i>Initialize Map
-                            </button>
-                        </div>
-                    </div>
+            <div style="margin-bottom: 10px; padding: 10px;">
+                <button class="btn btn-primary" onclick="testMap()">Test Map</button>
+                <button class="btn btn-secondary" onclick="alert('JavaScript is working!')">Test JS</button>
+                <button class="btn btn-info" onclick="console.log('Leaflet loaded:', typeof L !== 'undefined')">Check Leaflet</button>
+            </div>
+            <div id="map" style="height: 500px; width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: #f0f0f0; border: 2px solid #ccc;">
+                <div id="map-loading" style="padding: 20px; text-align: center; color: #666;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading map...
+                    <br><br>
+                    <small>If this message persists, check the browser console for errors.</small>
                 </div>
             </div>
         </div>
-        
+
         <!-- Sidebar -->
         <div class="col-lg-3">
             <!-- Legend -->
@@ -102,7 +184,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Recent Reports -->
             <div class="card">
                 <div class="card-header bg-danger text-white">
@@ -110,19 +192,19 @@
                 </div>
                 <div class="card-body">
                     <div class="report-item mb-3 p-2 border-start border-danger border-3">
-                        <small class="text-muted">2 minutes ago</small>
+                        <small class="text-muted">15 minutes ago</small>
                         <p class="mb-1 fw-bold">House Fire</p>
-                        <small>123 Main St, Downtown</small>
+                        <small>Bastos, Yaoundé</small>
                     </div>
                     <div class="report-item mb-3 p-2 border-start border-warning border-3">
-                        <small class="text-muted">15 minutes ago</small>
-                        <p class="mb-1 fw-bold">Brush Fire</p>
-                        <small>Oak Hill Park Area</small>
+                        <small class="text-muted">32 minutes ago</small>
+                        <p class="mb-1 fw-bold">Vehicle Fire</p>
+                        <small>Douala Port Area</small>
                     </div>
                     <div class="report-item mb-3 p-2 border-start border-info border-3">
                         <small class="text-muted">1 hour ago</small>
-                        <p class="mb-1 fw-bold">Vehicle Fire</p>
-                        <small>Highway 101, Mile 45</small>
+                        <p class="mb-1 fw-bold">Brush Fire</p>
+                        <small>Bamenda Hills</small>
                     </div>
                     <div class="text-center">
                         <button class="btn btn-sm btn-outline-primary">View All Reports</button>
@@ -131,7 +213,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Quick Actions -->
     <div class="row mt-4">
         <div class="col-12">
@@ -168,108 +250,672 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
-let mapInitialized = false;
-let userLocation = null;
+<!-- Leaflet JavaScript for OpenStreetMap -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-function initializeMap() {
-    if (!mapInitialized) {
-        document.getElementById('map').innerHTML = `
-            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                <div class="text-center">
-                    <div class="spinner-border text-primary mb-3" role="status"></div>
-                    <p>Loading map...</p>
-                </div>
-            </div>
-        `;
-        
-        setTimeout(() => {
-            document.getElementById('map').innerHTML = `
-                <div class="w-100 h-100 bg-success d-flex align-items-center justify-content-center text-white">
-                    <div class="text-center">
-                        <i class="fas fa-check-circle fa-3x mb-3"></i>
-                        <h4>Map Loaded Successfully</h4>
-                        <p>Interactive map with emergency locations</p>
-                        <small>In a real implementation, this would show Google Maps or similar</small>
-                    </div>
-                </div>
-            `;
-            mapInitialized = true;
-        }, 2000);
+<script>
+// Global variables for map
+let mapInstance;
+let mapUserLocation = null;
+let mapEmergencyMarkers = [];
+let mapHospitalMarkers = [];
+let mapStationMarkers = [];
+let mapUserMarker = null;
+
+// Cameroon coordinates (centered on Yaoundé)
+const CAMEROON_CENTER = [3.8480, 11.5021]; // [lat, lng] for Leaflet
+const CAMEROON_BOUNDS = [
+    [1.6, 8.5],   // Southwest [lat, lng]
+    [13.1, 16.2]  // Northeast [lat, lng]
+];
+
+// Sample emergency data for Cameroon
+const emergencyData = [
+    {
+        id: 1,
+        type: 'fire',
+        title: 'House Fire',
+        location: 'Bastos, Yaoundé',
+        coordinates: [3.8691, 11.5174], // [lat, lng] for Leaflet
+        severity: 'high',
+        time: '15 minutes ago',
+        description: 'Residential fire in Bastos neighborhood',
+        status: 'active'
+    },
+    {
+        id: 2,
+        type: 'fire',
+        title: 'Vehicle Fire',
+        location: 'Douala Port',
+        coordinates: [4.0511, 9.7679], // [lat, lng] for Leaflet
+        severity: 'medium',
+        time: '32 minutes ago',
+        description: 'Vehicle fire near port area',
+        status: 'responding'
+    },
+    {
+        id: 3,
+        type: 'fire',
+        title: 'Brush Fire',
+        location: 'Bamenda Hills',
+        coordinates: [5.9631, 10.1591], // [lat, lng] for Leaflet
+        severity: 'low',
+        time: '1 hour ago',
+        description: 'Small brush fire on hillside',
+        status: 'contained'
+    }
+];
+
+// Sample hospital data for Cameroon
+const hospitalData = [
+    {
+        name: 'Yaoundé Central Hospital',
+        coordinates: [3.8634, 11.5167], // [lat, lng] for Leaflet
+        type: 'General Hospital',
+        emergency: true,
+        phone: '119'
+    },
+    {
+        name: 'Douala General Hospital',
+        coordinates: [4.0435, 9.7043], // [lat, lng] for Leaflet
+        type: 'General Hospital',
+        emergency: true,
+        phone: '119'
+    },
+    {
+        name: 'Bamenda Regional Hospital',
+        coordinates: [5.9597, 10.1463], // [lat, lng] for Leaflet
+        type: 'Regional Hospital',
+        emergency: true,
+        phone: '119'
+    },
+    {
+        name: 'Garoua Regional Hospital',
+        coordinates: [9.3265, 13.3981], // [lat, lng] for Leaflet
+        type: 'Regional Hospital',
+        emergency: true,
+        phone: '119'
+    }
+];
+
+// Sample fire station data for Cameroon
+const stationData = [
+    {
+        name: 'Yaoundé Fire Station',
+        coordinates: [3.8480, 11.5021], // [lat, lng] for Leaflet
+        type: 'Main Station',
+        phone: '118',
+        vehicles: 5
+    },
+    {
+        name: 'Douala Fire Station',
+        coordinates: [4.0511, 9.7679], // [lat, lng] for Leaflet
+        type: 'Port Station',
+        phone: '118',
+        vehicles: 8
+    },
+    {
+        name: 'Bamenda Fire Station',
+        coordinates: [5.9631, 10.1591], // [lat, lng] for Leaflet
+        type: 'Regional Station',
+        phone: '118',
+        vehicles: 3
+    }
+];
+
+
+
+// Utility functions
+function getSeverityColor(severity) {
+    switch(severity) {
+        case 'critical': return 'danger';
+        case 'high': return 'warning';
+        case 'medium': return 'info';
+        case 'low': return 'success';
+        default: return 'secondary';
     }
 }
 
+// Distance calculation utility
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in kilometers
+}
+
+
+
+
+
+// Get current location and display on map
 function getCurrentLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-                alert(`Location found: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`);
-            },
-            function(error) {
-                alert('Error getting location: ' + error.message);
-            }
-        );
-    } else {
+    if (!navigator.geolocation) {
         alert('Geolocation is not supported by this browser.');
+        return;
     }
+
+    if (!mapInstance) {
+        alert('Map not initialized yet. Please wait.');
+        return;
+    }
+
+    // Show loading state
+    const locationBtn = document.querySelector('button[onclick="getCurrentLocation()"]');
+    const originalText = locationBtn.innerHTML;
+    locationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
+    locationBtn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            mapUserLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                accuracy: position.coords.accuracy
+            };
+
+            console.log('Map user location obtained:', mapUserLocation);
+
+            // Remove existing user marker if any
+            if (mapUserMarker) {
+                mapInstance.removeLayer(mapUserMarker);
+            }
+
+            // Create custom user location icon
+            const userIcon = L.divIcon({
+                className: 'user-location-marker',
+                html: '<i class="fas fa-user" style="color: white; font-size: 14px;"></i>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+                popupAnchor: [0, -15]
+            });
+
+            // Add user marker to map
+            mapUserMarker = L.marker([mapUserLocation.lat, mapUserLocation.lng], {
+                icon: userIcon
+            }).addTo(mapInstance);
+
+            // Create popup content
+            const popupContent = `
+                <div class="popup-title">Your Location</div>
+                <div class="popup-details">
+                    <strong>Coordinates:</strong> ${mapUserLocation.lat.toFixed(6)}, ${mapUserLocation.lng.toFixed(6)}<br>
+                    <strong>Accuracy:</strong> ±${Math.round(mapUserLocation.accuracy)} meters
+                </div>
+                <div class="popup-actions">
+                    <button class="btn btn-danger btn-sm" onclick="reportEmergencyHere()">
+                        <i class="fas fa-exclamation-triangle"></i> Report Emergency
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="shareLocation()">
+                        <i class="fas fa-share-alt"></i> Share Location
+                    </button>
+                </div>
+            `;
+
+            mapUserMarker.bindPopup(popupContent);
+
+            // Center map on user location
+            mapInstance.setView([mapUserLocation.lat, mapUserLocation.lng], 15);
+
+            // Open popup
+            mapUserMarker.openPopup();
+
+            // Restore button
+            locationBtn.innerHTML = originalText;
+            locationBtn.disabled = false;
+
+            // Show success message
+            showSuccessToast('Location found! You are now centered on the map.');
+
+        },
+        function(error) {
+            console.warn('Location error:', error.message);
+
+            // Restore button
+            locationBtn.innerHTML = originalText;
+            locationBtn.disabled = false;
+
+            // Handle different error types
+            let errorMessage = 'Could not get your location. ';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage += 'Please allow location access and try again.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage += 'Location information is unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage += 'Location request timed out. Please try again.';
+                    break;
+                default:
+                    errorMessage += 'An unknown error occurred.';
+                    break;
+            }
+
+            showErrorToast(errorMessage);
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 300000 // 5 minutes
+        }
+    );
 }
 
 function searchLocation() {
-    const location = document.getElementById('searchLocation').value;
-    if (location) {
-        alert(`Searching for: ${location}`);
-        // In real implementation, this would search the map
+    const query = document.getElementById('searchLocation').value;
+    if (!query) return;
+
+    if (!mapInstance) {
+        alert('Map not initialized yet. Please wait.');
+        return;
+    }
+
+    // Simple search - fly to Yaoundé if searching for it
+    if (query.toLowerCase().includes('yaoundé') || query.toLowerCase().includes('yaounde')) {
+        mapInstance.setView([3.8480, 11.5021], 12);
+    } else if (query.toLowerCase().includes('douala')) {
+        mapInstance.setView([4.0511, 9.7679], 12);
+    } else if (query.toLowerCase().includes('bamenda')) {
+        mapInstance.setView([5.9631, 10.1591], 12);
+    } else {
+        alert('Try searching for Yaoundé, Douala, or Bamenda');
     }
 }
 
 function toggleLayer(layer) {
-    alert(`Toggling ${layer} layer on map`);
-    // In real implementation, this would show/hide map layers
+    console.log('Toggle layer:', layer);
 }
 
 function reportEmergencyHere() {
-    if (userLocation) {
-        alert(`Reporting emergency at current location: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`);
-    } else {
-        alert('Please enable location services first');
+    if (!mapUserLocation) {
+        showErrorToast('Please get your location first by clicking "My Location" button.');
+        return;
+    }
+
+    const emergencyTypes = [
+        { value: 'fire', label: 'Fire Emergency', icon: 'fas fa-fire', color: '#dc3545' },
+        { value: 'medical', label: 'Medical Emergency', icon: 'fas fa-ambulance', color: '#28a745' },
+        { value: 'accident', label: 'Traffic Accident', icon: 'fas fa-car-crash', color: '#ffc107' },
+        { value: 'crime', label: 'Crime/Security', icon: 'fas fa-shield-alt', color: '#6f42c1' },
+        { value: 'other', label: 'Other Emergency', icon: 'fas fa-exclamation-triangle', color: '#fd7e14' }
+    ];
+
+    // Create emergency type selection modal
+    const modalHtml = `
+        <div class="modal fade" id="emergencyModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Report Emergency
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Your Location:</strong> ${mapUserLocation.lat.toFixed(6)}, ${mapUserLocation.lng.toFixed(6)}</p>
+                        <p>Select the type of emergency:</p>
+                        <div class="row">
+                            ${emergencyTypes.map(type => `
+                                <div class="col-12 mb-2">
+                                    <button class="btn btn-outline-secondary w-100 text-start emergency-type-btn"
+                                            data-type="${type.value}"
+                                            style="border-color: ${type.color};">
+                                        <i class="${type.icon} me-2" style="color: ${type.color};"></i>
+                                        ${type.label}
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-3">
+                            <label for="emergencyDescription" class="form-label">Additional Details (Optional):</label>
+                            <textarea class="form-control" id="emergencyDescription" rows="3"
+                                      placeholder="Describe the emergency situation..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="submitEmergency" disabled>
+                            <i class="fas fa-phone me-1"></i>Report Emergency
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById('emergencyModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('emergencyModal'));
+    modal.show();
+
+    // Handle emergency type selection
+    let selectedType = null;
+    document.querySelectorAll('.emergency-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove previous selection
+            document.querySelectorAll('.emergency-type-btn').forEach(b => {
+                b.classList.remove('btn-danger');
+                b.classList.add('btn-outline-secondary');
+            });
+
+            // Select current
+            this.classList.remove('btn-outline-secondary');
+            this.classList.add('btn-danger');
+            selectedType = this.dataset.type;
+
+            // Enable submit button
+            document.getElementById('submitEmergency').disabled = false;
+        });
+    });
+
+    // Handle emergency submission
+    document.getElementById('submitEmergency').addEventListener('click', function() {
+        if (!selectedType) return;
+
+        const description = document.getElementById('emergencyDescription').value;
+
+        // Submit emergency report
+        submitEmergencyReport(selectedType, description);
+
+        // Close modal
+        modal.hide();
+    });
+}
+
+function submitEmergencyReport(type, description) {
+    const emergencyData = {
+        type: type,
+        location: mapUserLocation,
+        description: description,
+        timestamp: new Date().toISOString(),
+        reportedBy: 'user'
+    };
+
+    console.log('Emergency report submitted:', emergencyData);
+
+    // Show success message
+    showSuccessToast('Emergency reported successfully! Emergency services have been notified.');
+
+    // Add emergency marker to map
+    const emergencyIcon = L.divIcon({
+        className: 'emergency-marker fire-marker',
+        html: '<i class="fas fa-exclamation-triangle" style="color: white; font-size: 14px;"></i>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+
+    const emergencyMarker = L.marker([mapUserLocation.lat, mapUserLocation.lng], {
+        icon: emergencyIcon
+    }).addTo(mapInstance);
+
+    emergencyMarker.bindPopup(`
+        <div class="popup-title">Emergency Reported</div>
+        <div class="popup-details">
+            <strong>Type:</strong> ${type}<br>
+            <strong>Time:</strong> Just now<br>
+            <strong>Status:</strong> Reported<br>
+            ${description ? `<strong>Description:</strong> ${description}` : ''}
+        </div>
+    `);
+
+    mapEmergencyMarkers.push(emergencyMarker);
+
+    // Prompt for emergency call
+    setTimeout(() => {
+        if (confirm('Would you like to call emergency services now?\n\n🔥 Fire: 118\n🚑 Medical: 119\n👮 Police: 117')) {
+            callEmergencyServices();
+        }
+    }, 2000);
+}
+
+function callEmergencyServices() {
+    const choice = prompt('Which emergency service do you need?\n\n1 - Fire Rescue (118)\n2 - Ambulance (119)\n3 - Police (117)\n\nEnter 1, 2, or 3:');
+
+    switch(choice) {
+        case '1':
+            window.location.href = 'tel:118';
+            break;
+        case '2':
+            window.location.href = 'tel:119';
+            break;
+        case '3':
+            window.location.href = 'tel:117';
+            break;
+        default:
+            showInfoToast('Emergency Services in Cameroon:\n🔥 Fire: 118 | 🚑 Medical: 119 | 👮 Police: 117');
     }
 }
 
 function findNearestHospital() {
-    alert('Finding nearest hospital...');
-    // In real implementation, this would find and highlight nearest hospital
+    alert('Would find nearest hospital');
 }
 
 function findFireStation() {
-    alert('Finding nearest fire station...');
-    // In real implementation, this would find and highlight nearest fire station
+    alert('Would find nearest fire station');
 }
 
 function shareLocation() {
-    if (userLocation) {
-        const locationText = `My location: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
-        if (navigator.share) {
-            navigator.share({
-                title: 'My Location',
-                text: locationText,
-                url: window.location.href
-            });
-        } else {
+    if (mapUserLocation) {
+        const locationText = `My location: ${mapUserLocation.lat.toFixed(4)}, ${mapUserLocation.lng.toFixed(4)}`;
+        if (navigator.clipboard) {
             navigator.clipboard.writeText(locationText);
             alert('Location copied to clipboard!');
+        } else {
+            alert(locationText);
         }
     } else {
         alert('Please get your location first');
     }
 }
 
-// Auto-initialize map after 1 second
-setTimeout(() => {
+function callFireRescue() {
+    if (confirm('Call Fire Rescue (118)?')) {
+        window.location.href = 'tel:118';
+    }
+}
+
+function callAmbulance() {
+    if (confirm('Call Ambulance (119)?')) {
+        window.location.href = 'tel:119';
+    }
+}
+
+function getDirections(lat, lng) {
+    const url = `https://www.openstreetmap.org/directions?to=${lat},${lng}`;
+    window.open(url, '_blank');
+}
+
+// Toast notification functions
+function showSuccessToast(message) {
+    showToast(message, 'success', 'fas fa-check-circle');
+}
+
+function showErrorToast(message) {
+    showToast(message, 'danger', 'fas fa-exclamation-triangle');
+}
+
+function showInfoToast(message) {
+    showToast(message, 'info', 'fas fa-info-circle');
+}
+
+function showToast(message, type, icon) {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.custom-toast');
+    existingToasts.forEach(toast => toast.remove());
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `custom-toast alert alert-${type} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 400px;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: none;
+        border-radius: 8px;
+    `;
+
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="${icon} me-2"></i>
+            <div class="flex-grow-1">${message}</div>
+            <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 150);
+        }
+    }, 5000);
+}
+
+// Initialize map function
+function initializeMap() {
+    console.log('Initializing map...');
+    const mapElement = document.getElementById('map');
+    const loadingElement = document.getElementById('map-loading');
+    console.log('Map element found:', mapElement);
+    console.log('Loading element found:', loadingElement);
+
+    if (!mapElement) {
+        console.error('Map element not found!');
+        return;
+    }
+
+    // Test if Leaflet is loaded
+    if (typeof L === 'undefined') {
+        console.error('Leaflet not loaded!');
+        mapElement.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Error: Leaflet library not loaded</div>';
+        return;
+    }
+
+    console.log('Leaflet loaded successfully');
+
+    try {
+        // Clear loading message
+        if (loadingElement) {
+            loadingElement.remove();
+        }
+
+        // Create map
+        console.log('Creating map with center:', CAMEROON_CENTER);
+        mapInstance = L.map('map').setView(CAMEROON_CENTER, 6);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(mapInstance);
+
+        console.log('Map tiles added, now adding markers...');
+
+        // Add markers
+        addMarkers();
+
+        console.log('Map created successfully!');
+
+    } catch (error) {
+        console.error('Error creating map:', error);
+        mapElement.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Error creating map: ' + error.message + '</div>';
+    }
+}
+
+// Add markers function
+function addMarkers() {
+    try {
+        console.log('Adding markers...');
+        console.log('Emergency data:', emergencyData);
+        console.log('Hospital data:', hospitalData);
+        console.log('Station data:', stationData);
+
+        // Add emergency markers
+        emergencyData.forEach((emergency, index) => {
+            console.log(`Adding emergency marker ${index}:`, emergency.coordinates);
+            const marker = L.marker(emergency.coordinates)
+                .addTo(mapInstance)
+                .bindPopup(`
+                    <div><strong>${emergency.title}</strong></div>
+                    <div>Location: ${emergency.location}</div>
+                    <div>Severity: ${emergency.severity}</div>
+                    <div>Time: ${emergency.time}</div>
+                `);
+            mapEmergencyMarkers.push(marker);
+        });
+
+        // Add hospital markers
+        hospitalData.forEach((hospital, index) => {
+            console.log(`Adding hospital marker ${index}:`, hospital.coordinates);
+            const marker = L.marker(hospital.coordinates)
+                .addTo(mapInstance)
+                .bindPopup(`
+                    <div><strong>${hospital.name}</strong></div>
+                    <div>Type: ${hospital.type}</div>
+                    <div>Phone: ${hospital.phone}</div>
+                `);
+            mapHospitalMarkers.push(marker);
+        });
+
+        // Add fire station markers
+        stationData.forEach((station, index) => {
+            console.log(`Adding station marker ${index}:`, station.coordinates);
+            const marker = L.marker(station.coordinates)
+                .addTo(mapInstance)
+                .bindPopup(`
+                    <div><strong>${station.name}</strong></div>
+                    <div>Type: ${station.type}</div>
+                    <div>Vehicles: ${station.vehicles}</div>
+                    <div>Phone: ${station.phone}</div>
+                `);
+            mapStationMarkers.push(marker);
+        });
+
+        console.log('All markers added successfully');
+        console.log('Emergency markers:', mapEmergencyMarkers.length);
+        console.log('Hospital markers:', mapHospitalMarkers.length);
+        console.log('Station markers:', mapStationMarkers.length);
+
+    } catch (error) {
+        console.error('Error adding markers:', error);
+    }
+}
+
+// Test map function for button
+function testMap() {
     initializeMap();
-}, 1000);
+}
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing map...');
+
+    // Wait a bit for everything to load
+    setTimeout(function() {
+        initializeMap();
+    }, 1000);
+});
 </script>
 {% endblock %}
