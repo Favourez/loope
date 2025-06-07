@@ -323,3 +323,4 @@ if __name__ == '__main__':
     # Set initial system health
     system_health_gauge.set(100)
     app.run(debug=True, host='0.0.0.0', port=3000)
+

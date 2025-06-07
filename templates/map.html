@@ -58,6 +58,122 @@
     }
 }
 
+.route-marker {
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.start-marker {
+    background-color: #28a745;
+}
+
+.end-marker {
+    background-color: #dc3545;
+}
+
+.pathfinding-controls {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.algorithm-info {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+}
+
+/* Enhanced Emergency Reporting Styles */
+.media-preview-item {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 30px;
+    bottom: -20px;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: white;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid #007bff;
+}
+
+.timeline-item.completed .timeline-content {
+    border-left-color: #28a745;
+}
+
+.timeline-item.pending .timeline-content {
+    border-left-color: #6c757d;
+    opacity: 0.7;
+}
+
+/* Voice recording animation */
+@keyframes pulse-recording {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.btn-danger .fas.fa-microphone,
+.btn-danger .fas.fa-stop {
+    animation: pulse-recording 1s infinite;
+}
+
+/* Severity badges */
+.badge.bg-low { background-color: #28a745 !important; }
+.badge.bg-medium { background-color: #ffc107 !important; color: #000; }
+.badge.bg-high { background-color: #fd7e14 !important; }
+.badge.bg-critical { background-color: #dc3545 !important; }
+
+/* Language selector in modal */
+.modal-header .form-select {
+    width: auto;
+    min-width: 120px;
+}
+
 .leaflet-popup-content {
     margin: 8px 12px;
     line-height: 1.4;
@@ -185,6 +301,49 @@
                 </div>
             </div>
 
+            <!-- Pathfinding Controls -->
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-route me-2"></i>Smart Pathfinding</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small algorithm-info">Using Dijkstra's algorithm for optimal routes</p>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Find Hospitals by:</label>
+                        <div class="btn-group w-100" role="group">
+                            <button class="btn btn-outline-info btn-sm" onclick="findOptimalHospitals('distance')">
+                                <i class="fas fa-ruler me-1"></i>Distance
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="findOptimalHospitals('emergency')">
+                                <i class="fas fa-ambulance me-1"></i>Emergency
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Find Fire Stations by:</label>
+                        <div class="btn-group w-100" role="group">
+                            <button class="btn btn-outline-warning btn-sm" onclick="findOptimalStations('distance')">
+                                <i class="fas fa-ruler me-1"></i>Distance
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="findOptimalStations('vehicles')">
+                                <i class="fas fa-truck me-1"></i>Vehicles
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="clearRoute()">
+                            <i class="fas fa-times me-1"></i>Clear Route
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="showGraphInfo()">
+                            <i class="fas fa-info-circle me-1"></i>Graph Info
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Recent Reports -->
             <div class="card">
                 <div class="card-header bg-danger text-white">
@@ -239,6 +398,18 @@
                         <div class="col-md-3 mb-2">
                             <button class="btn btn-success w-100" onclick="shareLocation()">
                                 <i class="fas fa-share-alt me-2"></i>Share Location
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6 mb-2">
+                            <button class="btn btn-outline-info w-100" onclick="viewMyReports()">
+                                <i class="fas fa-list me-2"></i>My Reports
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearRoute()">
+                                <i class="fas fa-times me-2"></i>Clear Route
                             </button>
                         </div>
                     </div>
@@ -532,56 +703,192 @@ function toggleLayer(layer) {
     console.log('Toggle layer:', layer);
 }
 
+// Enhanced Emergency Reporting System
+let currentLanguage = 'en'; // Default language
+let speechRecognition = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let emergencyReports = JSON.parse(localStorage.getItem('emergencyReports') || '[]');
+
+// Multi-language support
+const translations = {
+    en: {
+        reportEmergency: 'Report Emergency',
+        selectType: 'Select the type of emergency:',
+        fireEmergency: 'Fire Emergency',
+        medicalEmergency: 'Medical Emergency',
+        trafficAccident: 'Traffic Accident',
+        crimeSecurity: 'Crime/Security',
+        otherEmergency: 'Other Emergency',
+        additionalDetails: 'Additional Details (Optional):',
+        describeEmergency: 'Describe the emergency situation...',
+        yourLocation: 'Your Location:',
+        anonymous: 'Report Anonymously',
+        attachMedia: 'Attach Photos/Videos',
+        voiceDescription: 'Voice Description',
+        startRecording: 'Start Recording',
+        stopRecording: 'Stop Recording',
+        severity: 'Severity:',
+        low: 'Low',
+        medium: 'Medium',
+        high: 'High',
+        critical: 'Critical',
+        cancel: 'Cancel',
+        reportEmergencyBtn: 'Report Emergency',
+        uploading: 'Uploading...',
+        processing: 'Processing...'
+    },
+    fr: {
+        reportEmergency: 'Signaler une Urgence',
+        selectType: 'Sélectionnez le type d\'urgence:',
+        fireEmergency: 'Urgence Incendie',
+        medicalEmergency: 'Urgence Médicale',
+        trafficAccident: 'Accident de Circulation',
+        crimeSecurity: 'Crime/Sécurité',
+        otherEmergency: 'Autre Urgence',
+        additionalDetails: 'Détails Supplémentaires (Optionnel):',
+        describeEmergency: 'Décrivez la situation d\'urgence...',
+        yourLocation: 'Votre Emplacement:',
+        anonymous: 'Signaler Anonymement',
+        attachMedia: 'Joindre Photos/Vidéos',
+        voiceDescription: 'Description Vocale',
+        startRecording: 'Commencer l\'Enregistrement',
+        stopRecording: 'Arrêter l\'Enregistrement',
+        severity: 'Gravité:',
+        low: 'Faible',
+        medium: 'Moyen',
+        high: 'Élevé',
+        critical: 'Critique',
+        cancel: 'Annuler',
+        reportEmergencyBtn: 'Signaler l\'Urgence',
+        uploading: 'Téléchargement...',
+        processing: 'Traitement...'
+    }
+};
+
+// Severity assessment keywords
+const severityKeywords = {
+    critical: ['death', 'dying', 'unconscious', 'explosion', 'collapse', 'trapped', 'bleeding heavily', 'not breathing', 'chest pain', 'stroke', 'heart attack', 'overdose', 'suicide', 'weapon', 'shooting', 'stabbing'],
+    high: ['fire', 'smoke', 'burning', 'injured', 'accident', 'crash', 'broken bones', 'severe pain', 'difficulty breathing', 'allergic reaction', 'robbery', 'assault', 'domestic violence'],
+    medium: ['minor injury', 'cut', 'bruise', 'sprain', 'theft', 'vandalism', 'suspicious activity', 'lost person', 'animal attack'],
+    low: ['noise complaint', 'minor dispute', 'property damage', 'lost item', 'welfare check']
+};
+
 function reportEmergencyHere() {
     if (!mapUserLocation) {
-        showErrorToast('Please get your location first by clicking "My Location" button.');
+        showErrorToast(getTranslation('Please get your location first by clicking "My Location" button.'));
         return;
     }
 
     const emergencyTypes = [
-        { value: 'fire', label: 'Fire Emergency', icon: 'fas fa-fire', color: '#dc3545' },
-        { value: 'medical', label: 'Medical Emergency', icon: 'fas fa-ambulance', color: '#28a745' },
-        { value: 'accident', label: 'Traffic Accident', icon: 'fas fa-car-crash', color: '#ffc107' },
-        { value: 'crime', label: 'Crime/Security', icon: 'fas fa-shield-alt', color: '#6f42c1' },
-        { value: 'other', label: 'Other Emergency', icon: 'fas fa-exclamation-triangle', color: '#fd7e14' }
+        { value: 'fire', label: getTranslation('fireEmergency'), icon: 'fas fa-fire', color: '#dc3545' },
+        { value: 'medical', label: getTranslation('medicalEmergency'), icon: 'fas fa-ambulance', color: '#28a745' },
+        { value: 'accident', label: getTranslation('trafficAccident'), icon: 'fas fa-car-crash', color: '#ffc107' },
+        { value: 'crime', label: getTranslation('crimeSecurity'), icon: 'fas fa-shield-alt', color: '#6f42c1' },
+        { value: 'other', label: getTranslation('otherEmergency'), icon: 'fas fa-exclamation-triangle', color: '#fd7e14' }
     ];
 
-    // Create emergency type selection modal
+    // Create enhanced emergency reporting modal
     const modalHtml = `
         <div class="modal fade" id="emergencyModal" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title">
-                            <i class="fas fa-exclamation-triangle me-2"></i>Report Emergency
+                            <i class="fas fa-exclamation-triangle me-2"></i>${getTranslation('reportEmergency')}
                         </h5>
+                        <div class="ms-auto me-3">
+                            <select class="form-select form-select-sm text-dark" id="languageSelect" onchange="changeLanguage(this.value)">
+                                <option value="en" ${currentLanguage === 'en' ? 'selected' : ''}>English</option>
+                                <option value="fr" ${currentLanguage === 'fr' ? 'selected' : ''}>Français</option>
+                            </select>
+                        </div>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p><strong>Your Location:</strong> ${mapUserLocation.lat.toFixed(6)}, ${mapUserLocation.lng.toFixed(6)}</p>
-                        <p>Select the type of emergency:</p>
-                        <div class="row">
-                            ${emergencyTypes.map(type => `
-                                <div class="col-12 mb-2">
-                                    <button class="btn btn-outline-secondary w-100 text-start emergency-type-btn"
-                                            data-type="${type.value}"
-                                            style="border-color: ${type.color};">
-                                        <i class="${type.icon} me-2" style="color: ${type.color};"></i>
-                                        ${type.label}
-                                    </button>
-                                </div>
-                            `).join('')}
+                        <!-- Location Info -->
+                        <div class="alert alert-info">
+                            <strong>${getTranslation('yourLocation')}</strong> ${mapUserLocation.lat.toFixed(6)}, ${mapUserLocation.lng.toFixed(6)}
+                            <div class="form-check form-check-inline float-end">
+                                <input class="form-check-input" type="checkbox" id="anonymousReport">
+                                <label class="form-check-label" for="anonymousReport">${getTranslation('anonymous')}</label>
+                            </div>
                         </div>
-                        <div class="mt-3">
-                            <label for="emergencyDescription" class="form-label">Additional Details (Optional):</label>
-                            <textarea class="form-control" id="emergencyDescription" rows="3"
-                                      placeholder="Describe the emergency situation..."></textarea>
+
+                        <!-- Emergency Type Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">${getTranslation('selectType')}</label>
+                            <div class="row">
+                                ${emergencyTypes.map(type => `
+                                    <div class="col-md-6 mb-2">
+                                        <button class="btn btn-outline-secondary w-100 text-start emergency-type-btn"
+                                                data-type="${type.value}"
+                                                style="border-color: ${type.color};">
+                                            <i class="${type.icon} me-2" style="color: ${type.color};"></i>
+                                            ${type.label}
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Description Section -->
+                        <div class="mb-3">
+                            <label for="emergencyDescription" class="form-label fw-bold">${getTranslation('additionalDetails')}</label>
+                            <div class="input-group mb-2">
+                                <textarea class="form-control" id="emergencyDescription" rows="3"
+                                          placeholder="${getTranslation('describeEmergency')}"></textarea>
+                                <button class="btn btn-outline-primary" type="button" id="voiceRecordBtn" onclick="toggleVoiceRecording()">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                            <div id="voiceRecordingStatus" class="small text-muted"></div>
+                        </div>
+
+                        <!-- Media Upload Section -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">${getTranslation('attachMedia')}</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="file" class="form-control" id="photoUpload" accept="image/*" multiple>
+                                    <small class="text-muted">Photos (max 5MB each)</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="file" class="form-control" id="videoUpload" accept="video/*">
+                                    <small class="text-muted">Video (max 50MB)</small>
+                                </div>
+                            </div>
+                            <div id="mediaPreview" class="mt-2"></div>
+                        </div>
+
+                        <!-- Auto-detected Severity -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">${getTranslation('severity')}</label>
+                            <div class="btn-group w-100" role="group" id="severityGroup">
+                                <input type="radio" class="btn-check" name="severity" id="severityLow" value="low">
+                                <label class="btn btn-outline-success" for="severityLow">${getTranslation('low')}</label>
+
+                                <input type="radio" class="btn-check" name="severity" id="severityMedium" value="medium">
+                                <label class="btn btn-outline-warning" for="severityMedium">${getTranslation('medium')}</label>
+
+                                <input type="radio" class="btn-check" name="severity" id="severityHigh" value="high">
+                                <label class="btn btn-outline-danger" for="severityHigh">${getTranslation('high')}</label>
+
+                                <input type="radio" class="btn-check" name="severity" id="severityCritical" value="critical">
+                                <label class="btn btn-outline-dark" for="severityCritical">${getTranslation('critical')}</label>
+                            </div>
+                            <div id="severityDetection" class="small text-muted mt-1"></div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div id="uploadProgress" class="progress mb-3" style="display: none;">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${getTranslation('cancel')}</button>
                         <button type="button" class="btn btn-danger" id="submitEmergency" disabled>
-                            <i class="fas fa-phone me-1"></i>Report Emergency
+                            <i class="fas fa-phone me-1"></i>${getTranslation('reportEmergencyBtn')}
                         </button>
                     </div>
                 </div>
@@ -602,8 +909,17 @@ function reportEmergencyHere() {
     const modal = new bootstrap.Modal(document.getElementById('emergencyModal'));
     modal.show();
 
-    // Handle emergency type selection
+    // Initialize enhanced emergency reporting
+    initializeEnhancedReporting(modal);
+}
+
+// Enhanced Emergency Reporting Functions
+function initializeEnhancedReporting(modal) {
     let selectedType = null;
+    let uploadedFiles = [];
+    let voiceRecording = null;
+
+    // Handle emergency type selection
     document.querySelectorAll('.emergency-type-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             // Remove previous selection
@@ -617,40 +933,384 @@ function reportEmergencyHere() {
             this.classList.add('btn-danger');
             selectedType = this.dataset.type;
 
-            // Enable submit button
-            document.getElementById('submitEmergency').disabled = false;
+            // Enable submit button if type is selected
+            updateSubmitButton();
         });
     });
+
+    // Handle description input with auto-severity detection
+    const descriptionTextarea = document.getElementById('emergencyDescription');
+    descriptionTextarea.addEventListener('input', function() {
+        const description = this.value.toLowerCase();
+        const detectedSeverity = assessSeverity(description);
+
+        if (detectedSeverity) {
+            // Auto-select severity
+            document.getElementById(`severity${detectedSeverity.charAt(0).toUpperCase() + detectedSeverity.slice(1)}`).checked = true;
+
+            // Show detection message
+            document.getElementById('severityDetection').innerHTML =
+                `<i class="fas fa-robot text-primary"></i> Auto-detected: ${detectedSeverity} severity`;
+        }
+
+        updateSubmitButton();
+    });
+
+    // Handle file uploads
+    document.getElementById('photoUpload').addEventListener('change', handlePhotoUpload);
+    document.getElementById('videoUpload').addEventListener('change', handleVideoUpload);
 
     // Handle emergency submission
     document.getElementById('submitEmergency').addEventListener('click', function() {
         if (!selectedType) return;
 
-        const description = document.getElementById('emergencyDescription').value;
-
-        // Submit emergency report
-        submitEmergencyReport(selectedType, description);
-
-        // Close modal
+        const formData = collectEmergencyData(selectedType, uploadedFiles, voiceRecording);
+        submitEnhancedEmergencyReport(formData);
         modal.hide();
+    });
+
+    function updateSubmitButton() {
+        const hasType = selectedType !== null;
+        const hasDescription = document.getElementById('emergencyDescription').value.trim().length > 0;
+        document.getElementById('submitEmergency').disabled = !hasType;
+    }
+}
+
+// Enhanced Emergency Reporting Support Functions
+
+// Translation helper
+function getTranslation(key) {
+    return translations[currentLanguage][key] || key;
+}
+
+// Language change function
+function changeLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('preferredLanguage', lang);
+
+    // Refresh modal content if open
+    const modal = document.getElementById('emergencyModal');
+    if (modal && modal.classList.contains('show')) {
+        // Close and reopen modal with new language
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        modalInstance.hide();
+        setTimeout(() => reportEmergencyHere(), 300);
+    }
+}
+
+// Severity assessment function
+function assessSeverity(description) {
+    const text = description.toLowerCase();
+
+    // Check for critical keywords
+    for (let keyword of severityKeywords.critical) {
+        if (text.includes(keyword)) {
+            return 'critical';
+        }
+    }
+
+    // Check for high severity keywords
+    for (let keyword of severityKeywords.high) {
+        if (text.includes(keyword)) {
+            return 'high';
+        }
+    }
+
+    // Check for medium severity keywords
+    for (let keyword of severityKeywords.medium) {
+        if (text.includes(keyword)) {
+            return 'medium';
+        }
+    }
+
+    // Check for low severity keywords
+    for (let keyword of severityKeywords.low) {
+        if (text.includes(keyword)) {
+            return 'low';
+        }
+    }
+
+    // Default to medium if no keywords match but description exists
+    return text.length > 10 ? 'medium' : null;
+}
+
+// Voice recording functions
+function toggleVoiceRecording() {
+    const btn = document.getElementById('voiceRecordBtn');
+    const status = document.getElementById('voiceRecordingStatus');
+
+    if (!speechRecognition) {
+        initializeSpeechRecognition();
+    }
+
+    if (speechRecognition.isRecording) {
+        stopVoiceRecording();
+    } else {
+        startVoiceRecording();
+    }
+}
+
+function initializeSpeechRecognition() {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        speechRecognition = new SpeechRecognition();
+
+        speechRecognition.continuous = true;
+        speechRecognition.interimResults = true;
+        speechRecognition.lang = currentLanguage === 'fr' ? 'fr-FR' : 'en-US';
+
+        speechRecognition.onstart = function() {
+            speechRecognition.isRecording = true;
+            updateVoiceRecordingUI(true);
+        };
+
+        speechRecognition.onresult = function(event) {
+            let finalTranscript = '';
+            let interimTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            const textarea = document.getElementById('emergencyDescription');
+            const currentText = textarea.value;
+            const newText = currentText + finalTranscript;
+
+            if (finalTranscript) {
+                textarea.value = newText;
+                // Trigger severity assessment
+                textarea.dispatchEvent(new Event('input'));
+            }
+
+            // Show interim results
+            if (interimTranscript) {
+                document.getElementById('voiceRecordingStatus').innerHTML =
+                    `<i class="fas fa-microphone text-danger"></i> ${getTranslation('Recording')}: "${interimTranscript}"`;
+            }
+        };
+
+        speechRecognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+            showErrorToast(`Voice recognition error: ${event.error}`);
+            stopVoiceRecording();
+        };
+
+        speechRecognition.onend = function() {
+            speechRecognition.isRecording = false;
+            updateVoiceRecordingUI(false);
+        };
+    } else {
+        showErrorToast('Voice recognition not supported in this browser.');
+    }
+}
+
+function startVoiceRecording() {
+    if (speechRecognition) {
+        speechRecognition.start();
+    }
+}
+
+function stopVoiceRecording() {
+    if (speechRecognition && speechRecognition.isRecording) {
+        speechRecognition.stop();
+    }
+}
+
+function updateVoiceRecordingUI(isRecording) {
+    const btn = document.getElementById('voiceRecordBtn');
+    const status = document.getElementById('voiceRecordingStatus');
+
+    if (isRecording) {
+        btn.innerHTML = '<i class="fas fa-stop text-danger"></i>';
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-danger');
+        status.innerHTML = `<i class="fas fa-microphone text-danger"></i> ${getTranslation('Recording')}...`;
+    } else {
+        btn.innerHTML = '<i class="fas fa-microphone"></i>';
+        btn.classList.remove('btn-danger');
+        btn.classList.add('btn-outline-primary');
+        status.innerHTML = '';
+    }
+}
+
+// Media upload functions
+function handlePhotoUpload(event) {
+    const files = Array.from(event.target.files);
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const validFiles = [];
+
+    files.forEach(file => {
+        if (file.size > maxSize) {
+            showErrorToast(`Photo ${file.name} is too large. Maximum size is 5MB.`);
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            showErrorToast(`${file.name} is not a valid image file.`);
+            return;
+        }
+
+        validFiles.push(file);
+    });
+
+    if (validFiles.length > 0) {
+        displayMediaPreview(validFiles, 'photo');
+        showSuccessToast(`${validFiles.length} photo(s) ready for upload.`);
+    }
+}
+
+function handleVideoUpload(event) {
+    const file = event.target.files[0];
+    const maxSize = 50 * 1024 * 1024; // 50MB
+
+    if (!file) return;
+
+    if (file.size > maxSize) {
+        showErrorToast('Video file is too large. Maximum size is 50MB.');
+        event.target.value = '';
+        return;
+    }
+
+    if (!file.type.startsWith('video/')) {
+        showErrorToast('Please select a valid video file.');
+        event.target.value = '';
+        return;
+    }
+
+    displayMediaPreview([file], 'video');
+    showSuccessToast('Video ready for upload.');
+}
+
+function displayMediaPreview(files, type) {
+    const preview = document.getElementById('mediaPreview');
+
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const mediaElement = document.createElement('div');
+            mediaElement.className = 'media-preview-item d-inline-block me-2 mb-2 position-relative';
+
+            if (type === 'photo') {
+                mediaElement.innerHTML = `
+                    <img src="${e.target.result}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0"
+                            onclick="this.parentElement.remove()" style="transform: translate(50%, -50%);">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+            } else {
+                mediaElement.innerHTML = `
+                    <video class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" controls>
+                        <source src="${e.target.result}" type="${file.type}">
+                    </video>
+                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0"
+                            onclick="this.parentElement.remove()" style="transform: translate(50%, -50%);">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+            }
+
+            preview.appendChild(mediaElement);
+        };
+        reader.readAsDataURL(file);
     });
 }
 
-function submitEmergencyReport(type, description) {
+// Enhanced emergency data collection
+function collectEmergencyData(type, files, voiceRecording) {
+    const description = document.getElementById('emergencyDescription').value;
+    const isAnonymous = document.getElementById('anonymousReport').checked;
+    const severity = document.querySelector('input[name="severity"]:checked')?.value || 'medium';
+
     const emergencyData = {
+        id: generateEmergencyId(),
         type: type,
-        location: mapUserLocation,
+        location: {
+            lat: mapUserLocation.lat,
+            lng: mapUserLocation.lng,
+            accuracy: mapUserLocation.accuracy
+        },
         description: description,
+        severity: severity,
+        isAnonymous: isAnonymous,
         timestamp: new Date().toISOString(),
-        reportedBy: 'user'
+        language: currentLanguage,
+        status: 'reported',
+        mediaFiles: files || [],
+        voiceRecording: voiceRecording,
+        reportedBy: isAnonymous ? 'anonymous' : 'user',
+        followUpId: generateFollowUpId()
     };
 
-    console.log('Emergency report submitted:', emergencyData);
+    return emergencyData;
+}
 
-    // Show success message
-    showSuccessToast('Emergency reported successfully! Emergency services have been notified.');
+function generateEmergencyId() {
+    return 'EMG-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
 
-    // Add emergency marker to map
+function generateFollowUpId() {
+    return 'FU-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+}
+
+// Enhanced emergency submission
+function submitEnhancedEmergencyReport(emergencyData) {
+    // Store in local storage for follow-up tracking
+    emergencyReports.push(emergencyData);
+    localStorage.setItem('emergencyReports', JSON.stringify(emergencyReports));
+
+    console.log('Enhanced emergency report submitted:', emergencyData);
+
+    // Show upload progress
+    showUploadProgress();
+
+    // Simulate upload process
+    setTimeout(() => {
+        hideUploadProgress();
+
+        // Show success message with follow-up ID
+        showSuccessToast(`Emergency reported successfully! Follow-up ID: ${emergencyData.followUpId}`);
+
+        // Add emergency marker to map
+        addEmergencyMarkerToMap(emergencyData);
+
+        // Show follow-up options
+        showFollowUpOptions(emergencyData);
+
+    }, 2000);
+}
+
+function showUploadProgress() {
+    const progressBar = document.getElementById('uploadProgress');
+    const bar = progressBar.querySelector('.progress-bar');
+
+    progressBar.style.display = 'block';
+
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 30;
+        if (progress > 100) progress = 100;
+
+        bar.style.width = progress + '%';
+        bar.textContent = Math.round(progress) + '%';
+
+        if (progress >= 100) {
+            clearInterval(interval);
+        }
+    }, 200);
+}
+
+function hideUploadProgress() {
+    const progressBar = document.getElementById('uploadProgress');
+    progressBar.style.display = 'none';
+}
+
+function addEmergencyMarkerToMap(emergencyData) {
     const emergencyIcon = L.divIcon({
         className: 'emergency-marker fire-marker',
         html: '<i class="fas fa-exclamation-triangle" style="color: white; font-size: 14px;"></i>',
@@ -658,28 +1318,29 @@ function submitEmergencyReport(type, description) {
         iconAnchor: [15, 15]
     });
 
-    const emergencyMarker = L.marker([mapUserLocation.lat, mapUserLocation.lng], {
+    const emergencyMarker = L.marker([emergencyData.location.lat, emergencyData.location.lng], {
         icon: emergencyIcon
     }).addTo(mapInstance);
 
     emergencyMarker.bindPopup(`
         <div class="popup-title">Emergency Reported</div>
         <div class="popup-details">
-            <strong>Type:</strong> ${type}<br>
+            <strong>ID:</strong> ${emergencyData.id}<br>
+            <strong>Type:</strong> ${emergencyData.type}<br>
+            <strong>Severity:</strong> <span class="badge bg-${getSeverityColor(emergencyData.severity)}">${emergencyData.severity.toUpperCase()}</span><br>
             <strong>Time:</strong> Just now<br>
-            <strong>Status:</strong> Reported<br>
-            ${description ? `<strong>Description:</strong> ${description}` : ''}
+            <strong>Status:</strong> ${emergencyData.status}<br>
+            <strong>Follow-up ID:</strong> ${emergencyData.followUpId}<br>
+            ${emergencyData.description ? `<strong>Description:</strong> ${emergencyData.description}` : ''}
+        </div>
+        <div class="popup-actions">
+            <button class="btn btn-sm btn-info" onclick="trackEmergencyStatus('${emergencyData.followUpId}')">
+                <i class="fas fa-search"></i> Track Status
+            </button>
         </div>
     `);
 
     mapEmergencyMarkers.push(emergencyMarker);
-
-    // Prompt for emergency call
-    setTimeout(() => {
-        if (confirm('Would you like to call emergency services now?\n\n🔥 Fire: 118\n🚑 Medical: 119\n👮 Police: 117')) {
-            callEmergencyServices();
-        }
-    }, 2000);
 }
 
 function callEmergencyServices() {
@@ -700,12 +1361,766 @@ function callEmergencyServices() {
     }
 }
 
+// Dijkstra's Algorithm Implementation for Emergency Facilities
+class Graph {
+    constructor() {
+        this.vertices = new Map();
+        this.edges = new Map();
+    }
+
+    addVertex(id, lat, lng, data = {}) {
+        this.vertices.set(id, { id, lat, lng, ...data });
+        this.edges.set(id, new Map());
+    }
+
+    addEdge(from, to, weight) {
+        if (!this.edges.has(from)) this.edges.set(from, new Map());
+        if (!this.edges.has(to)) this.edges.set(to, new Map());
+
+        this.edges.get(from).set(to, weight);
+        this.edges.get(to).set(from, weight); // Undirected graph
+    }
+
+    dijkstra(startId) {
+        const distances = new Map();
+        const previous = new Map();
+        const unvisited = new Set();
+
+        // Initialize distances
+        for (let vertex of this.vertices.keys()) {
+            distances.set(vertex, vertex === startId ? 0 : Infinity);
+            previous.set(vertex, null);
+            unvisited.add(vertex);
+        }
+
+        while (unvisited.size > 0) {
+            // Find unvisited vertex with minimum distance
+            let current = null;
+            let minDistance = Infinity;
+
+            for (let vertex of unvisited) {
+                if (distances.get(vertex) < minDistance) {
+                    minDistance = distances.get(vertex);
+                    current = vertex;
+                }
+            }
+
+            if (current === null || minDistance === Infinity) break;
+
+            unvisited.delete(current);
+
+            // Update distances to neighbors
+            const neighbors = this.edges.get(current);
+            if (neighbors) {
+                for (let [neighbor, weight] of neighbors) {
+                    if (unvisited.has(neighbor)) {
+                        const newDistance = distances.get(current) + weight;
+                        if (newDistance < distances.get(neighbor)) {
+                            distances.set(neighbor, newDistance);
+                            previous.set(neighbor, current);
+                        }
+                    }
+                }
+            }
+        }
+
+        return { distances, previous };
+    }
+
+    getPath(previous, startId, endId) {
+        const path = [];
+        let current = endId;
+
+        while (current !== null) {
+            path.unshift(current);
+            current = previous.get(current);
+        }
+
+        return path[0] === startId ? path : [];
+    }
+}
+
+// Global graph instance
+let emergencyGraph = null;
+
+// Initialize emergency network graph
+function initializeEmergencyGraph() {
+    emergencyGraph = new Graph();
+
+    // Add user location if available
+    if (mapUserLocation) {
+        emergencyGraph.addVertex('user', mapUserLocation.lat, mapUserLocation.lng, { type: 'user' });
+    }
+
+    // Add hospitals
+    hospitalData.forEach((hospital, index) => {
+        const id = `hospital_${index}`;
+        emergencyGraph.addVertex(id, hospital.coordinates[0], hospital.coordinates[1], {
+            type: 'hospital',
+            name: hospital.name,
+            data: hospital
+        });
+    });
+
+    // Add fire stations
+    stationData.forEach((station, index) => {
+        const id = `station_${index}`;
+        emergencyGraph.addVertex(id, station.coordinates[0], station.coordinates[1], {
+            type: 'station',
+            name: station.name,
+            data: station
+        });
+    });
+
+    // Add emergency locations
+    emergencyData.forEach((emergency, index) => {
+        const id = `emergency_${index}`;
+        emergencyGraph.addVertex(id, emergency.coordinates[0], emergency.coordinates[1], {
+            type: 'emergency',
+            title: emergency.title,
+            data: emergency
+        });
+    });
+
+    // Create edges between all vertices (complete graph with distance weights)
+    const vertices = Array.from(emergencyGraph.vertices.values());
+    for (let i = 0; i < vertices.length; i++) {
+        for (let j = i + 1; j < vertices.length; j++) {
+            const distance = calculateDistance(
+                vertices[i].lat, vertices[i].lng,
+                vertices[j].lat, vertices[j].lng
+            );
+            emergencyGraph.addEdge(vertices[i].id, vertices[j].id, distance);
+        }
+    }
+
+    console.log('Emergency graph initialized with', emergencyGraph.vertices.size, 'vertices');
+}
+
 function findNearestHospital() {
-    alert('Would find nearest hospital');
+    const targets = findOptimalPath('hospital', 'emergency');
+    if (targets && targets.length > 0) {
+        showPathfindingResults(targets, 'hospital');
+    }
 }
 
 function findFireStation() {
-    alert('Would find nearest fire station');
+    const targets = findOptimalPath('station', 'vehicles');
+    if (targets && targets.length > 0) {
+        showPathfindingResults(targets, 'station');
+    }
+}
+
+// Route drawing and visualization
+let currentRouteLayer = null;
+
+function drawRoute(startCoords, endCoords, color = '#007bff') {
+    // Remove existing route
+    if (currentRouteLayer) {
+        mapInstance.removeLayer(currentRouteLayer);
+    }
+
+    // Create route line
+    const routeCoords = [startCoords, endCoords];
+    currentRouteLayer = L.polyline(routeCoords, {
+        color: color,
+        weight: 4,
+        opacity: 0.8,
+        dashArray: '10, 5'
+    }).addTo(mapInstance);
+
+    // Add route markers
+    const startIcon = L.divIcon({
+        className: 'route-marker start-marker',
+        html: '<i class="fas fa-play" style="color: white; font-size: 12px;"></i>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+
+    const endIcon = L.divIcon({
+        className: 'route-marker end-marker',
+        html: '<i class="fas fa-flag-checkered" style="color: white; font-size: 12px;"></i>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+
+    L.marker(startCoords, { icon: startIcon }).addTo(mapInstance)
+        .bindPopup('Start: Your Location');
+
+    L.marker(endCoords, { icon: endIcon }).addTo(mapInstance)
+        .bindPopup('Destination');
+
+    // Fit map to show entire route
+    const bounds = L.latLngBounds([startCoords, endCoords]);
+    mapInstance.fitBounds(bounds, { padding: [20, 20] });
+}
+
+function clearRoute() {
+    if (currentRouteLayer) {
+        mapInstance.removeLayer(currentRouteLayer);
+        currentRouteLayer = null;
+    }
+}
+
+// Advanced pathfinding with multiple criteria
+function findOptimalPath(targetType, criteria = 'distance') {
+    if (!mapUserLocation) {
+        showErrorToast('Please get your location first by clicking "My Location" button.');
+        return;
+    }
+
+    if (!emergencyGraph) {
+        initializeEmergencyGraph();
+    }
+
+    // Update user location in graph
+    updateUserLocationInGraph();
+
+    // Run Dijkstra's algorithm
+    const { distances, previous } = emergencyGraph.dijkstra('user');
+
+    // Find all targets of specified type
+    const targets = [];
+    for (let [vertexId, distance] of distances) {
+        const vertex = emergencyGraph.vertices.get(vertexId);
+        if (vertex.type === targetType) {
+            targets.push({
+                vertex: vertex,
+                distance: distance,
+                path: emergencyGraph.getPath(previous, 'user', vertexId)
+            });
+        }
+    }
+
+    if (targets.length === 0) {
+        showErrorToast(`No ${targetType}s found in the network.`);
+        return;
+    }
+
+    // Sort by criteria
+    targets.sort((a, b) => {
+        switch (criteria) {
+            case 'distance':
+                return a.distance - b.distance;
+            case 'vehicles': // For fire stations
+                if (targetType === 'station') {
+                    return (b.vertex.data?.vehicles || 0) - (a.vertex.data?.vehicles || 0);
+                }
+                return a.distance - b.distance;
+            case 'emergency': // For hospitals with emergency services
+                if (targetType === 'hospital') {
+                    const aEmergency = a.vertex.data?.emergency ? 0 : 1;
+                    const bEmergency = b.vertex.data?.emergency ? 0 : 1;
+                    return aEmergency - bEmergency || a.distance - b.distance;
+                }
+                return a.distance - b.distance;
+            default:
+                return a.distance - b.distance;
+        }
+    });
+
+    return targets;
+}
+
+function showPathfindingResults(targets, targetType) {
+    if (targets.length === 0) return;
+
+    const nearest = targets[0];
+
+    // Center map and highlight
+    mapInstance.setView([nearest.vertex.lat, nearest.vertex.lng], 14);
+
+    // Draw route
+    const color = targetType === 'hospital' ? '#17a2b8' : '#ffc107';
+    drawRoute([mapUserLocation.lat, mapUserLocation.lng], [nearest.vertex.lat, nearest.vertex.lng], color);
+
+    // Create results modal
+    const modalHtml = `
+        <div class="modal fade" id="pathfindingModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-route me-2"></i>Pathfinding Results - ${targetType === 'hospital' ? 'Hospitals' : 'Fire Stations'}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Showing ${targets.length} ${targetType}(s) sorted by distance using Dijkstra's algorithm
+                        </div>
+                        <div class="list-group">
+                            ${targets.slice(0, 5).map((target, index) => `
+                                <div class="list-group-item ${index === 0 ? 'list-group-item-primary' : ''}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                ${index === 0 ? '<i class="fas fa-star text-warning me-1"></i>' : ''}
+                                                ${target.vertex.name || target.vertex.title}
+                                                ${index === 0 ? ' (Nearest)' : ''}
+                                            </h6>
+                                            <p class="mb-1">
+                                                <strong>Distance:</strong> ${(target.distance/1000).toFixed(2)} km<br>
+                                                ${targetType === 'hospital' ?
+                                                    `<strong>Emergency Services:</strong> ${target.vertex.data?.emergency ? 'Available' : 'Not Available'}<br>` :
+                                                    `<strong>Vehicles:</strong> ${target.vertex.data?.vehicles || 'N/A'}<br>`
+                                                }
+                                                <strong>Phone:</strong> ${target.vertex.data?.phone || 'N/A'}
+                                            </p>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showPathTo('${target.vertex.id}')">
+                                                <i class="fas fa-route"></i> Show Route
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${targets.length > 5 ? `<p class="mt-2 text-muted">Showing top 5 of ${targets.length} results</p>` : ''}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="clearRoute()">Clear Route</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal
+    const existingModal = document.getElementById('pathfindingModal');
+    if (existingModal) existingModal.remove();
+
+    // Add and show modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('pathfindingModal'));
+    modal.show();
+
+    // Show success message
+    showSuccessToast(`Found ${targets.length} ${targetType}(s). Nearest: ${nearest.vertex.name} (${(nearest.distance/1000).toFixed(2)} km)`);
+}
+
+function showPathTo(vertexId) {
+    const vertex = emergencyGraph.vertices.get(vertexId);
+    if (vertex && mapUserLocation) {
+        const color = vertex.type === 'hospital' ? '#17a2b8' : '#ffc107';
+        drawRoute([mapUserLocation.lat, mapUserLocation.lng], [vertex.lat, vertex.lng], color);
+        mapInstance.setView([vertex.lat, vertex.lng], 14);
+
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('pathfindingModal'));
+        if (modal) modal.hide();
+    }
+}
+
+function updateUserLocationInGraph() {
+    if (!emergencyGraph || !mapUserLocation) return;
+
+    if (emergencyGraph.vertices.has('user')) {
+        emergencyGraph.vertices.set('user', {
+            id: 'user',
+            lat: mapUserLocation.lat,
+            lng: mapUserLocation.lng,
+            type: 'user'
+        });
+    } else {
+        emergencyGraph.addVertex('user', mapUserLocation.lat, mapUserLocation.lng, { type: 'user' });
+        // Add edges to all existing vertices
+        const vertices = Array.from(emergencyGraph.vertices.values());
+        for (let vertex of vertices) {
+            if (vertex.id !== 'user') {
+                const distance = calculateDistance(
+                    mapUserLocation.lat, mapUserLocation.lng,
+                    vertex.lat, vertex.lng
+                );
+                emergencyGraph.addEdge('user', vertex.id, distance);
+            }
+        }
+    }
+}
+
+// Follow-up tracking and status monitoring
+function showFollowUpOptions(emergencyData) {
+    const followUpHtml = `
+        <div class="modal fade" id="followUpModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-check-circle me-2"></i>Emergency Reported Successfully
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-info-circle me-2"></i>Your Report Details</h6>
+                            <p><strong>Emergency ID:</strong> ${emergencyData.id}</p>
+                            <p><strong>Follow-up ID:</strong> ${emergencyData.followUpId}</p>
+                            <p><strong>Type:</strong> ${emergencyData.type}</p>
+                            <p><strong>Severity:</strong> ${emergencyData.severity}</p>
+                            <p><strong>Status:</strong> Reported and being processed</p>
+                        </div>
+
+                        <h6>What happens next?</h6>
+                        <ol class="small">
+                            <li>Emergency services have been automatically notified</li>
+                            <li>Your report is being reviewed and prioritized</li>
+                            <li>Response teams will be dispatched based on severity</li>
+                            <li>You can track the status using your Follow-up ID</li>
+                        </ol>
+
+                        <div class="mt-3">
+                            <h6>Immediate Actions:</h6>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-danger" onclick="callEmergencyServices()">
+                                    <i class="fas fa-phone me-2"></i>Call Emergency Services Now
+                                </button>
+                                <button class="btn btn-info" onclick="trackEmergencyStatus('${emergencyData.followUpId}')">
+                                    <i class="fas fa-search me-2"></i>Track Status
+                                </button>
+                                <button class="btn btn-warning" onclick="shareEmergencyReport('${emergencyData.followUpId}')">
+                                    <i class="fas fa-share-alt me-2"></i>Share with Family/Friends
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="viewMyReports()">
+                            <i class="fas fa-list me-1"></i>View My Reports
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal
+    const existingModal = document.getElementById('followUpModal');
+    if (existingModal) existingModal.remove();
+
+    // Add and show modal
+    document.body.insertAdjacentHTML('beforeend', followUpHtml);
+    const modal = new bootstrap.Modal(document.getElementById('followUpModal'));
+    modal.show();
+}
+
+function trackEmergencyStatus(followUpId) {
+    // Find the emergency report
+    const report = emergencyReports.find(r => r.followUpId === followUpId);
+
+    if (!report) {
+        showErrorToast('Emergency report not found. Please check your Follow-up ID.');
+        return;
+    }
+
+    // Simulate status updates
+    const possibleStatuses = [
+        { status: 'reported', description: 'Report received and logged', time: '0 min ago' },
+        { status: 'reviewing', description: 'Report under review by dispatch', time: '2 min ago' },
+        { status: 'dispatched', description: 'Emergency units dispatched', time: '5 min ago' },
+        { status: 'en_route', description: 'Emergency units en route', time: '8 min ago' },
+        { status: 'on_scene', description: 'Emergency units on scene', time: '15 min ago' },
+        { status: 'resolved', description: 'Emergency resolved', time: '45 min ago' }
+    ];
+
+    // Simulate progression based on time since report
+    const timeSinceReport = Date.now() - new Date(report.timestamp).getTime();
+    const minutesSince = Math.floor(timeSinceReport / (1000 * 60));
+
+    let currentStatusIndex = 0;
+    if (minutesSince > 45) currentStatusIndex = 5;
+    else if (minutesSince > 15) currentStatusIndex = 4;
+    else if (minutesSince > 8) currentStatusIndex = 3;
+    else if (minutesSince > 5) currentStatusIndex = 2;
+    else if (minutesSince > 2) currentStatusIndex = 1;
+
+    const currentStatus = possibleStatuses[currentStatusIndex];
+
+    showStatusTrackingModal(report, possibleStatuses, currentStatusIndex);
+}
+
+function showStatusTrackingModal(report, statuses, currentIndex) {
+    const statusHtml = `
+        <div class="modal fade" id="statusModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-search me-2"></i>Emergency Status Tracking
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Report Information</h6>
+                                <table class="table table-sm">
+                                    <tr><td><strong>Follow-up ID:</strong></td><td>${report.followUpId}</td></tr>
+                                    <tr><td><strong>Type:</strong></td><td>${report.type}</td></tr>
+                                    <tr><td><strong>Severity:</strong></td><td><span class="badge bg-${getSeverityColor(report.severity)}">${report.severity}</span></td></tr>
+                                    <tr><td><strong>Reported:</strong></td><td>${new Date(report.timestamp).toLocaleString()}</td></tr>
+                                    <tr><td><strong>Status:</strong></td><td><span class="badge bg-primary">${statuses[currentIndex].status.replace('_', ' ').toUpperCase()}</span></td></tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Status Timeline</h6>
+                                <div class="timeline">
+                                    ${statuses.map((status, index) => `
+                                        <div class="timeline-item ${index <= currentIndex ? 'completed' : 'pending'}">
+                                            <div class="timeline-marker ${index <= currentIndex ? 'bg-success' : 'bg-secondary'}">
+                                                <i class="fas ${index <= currentIndex ? 'fa-check' : 'fa-clock'}"></i>
+                                            </div>
+                                            <div class="timeline-content">
+                                                <h6 class="mb-1">${status.status.replace('_', ' ').toUpperCase()}</h6>
+                                                <p class="mb-0 small">${status.description}</p>
+                                                ${index <= currentIndex ? `<small class="text-muted">${status.time}</small>` : ''}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle me-2"></i>Current Status</h6>
+                                <p class="mb-0">${statuses[currentIndex].description}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="refreshStatus('${report.followUpId}')">
+                            <i class="fas fa-refresh me-1"></i>Refresh Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal
+    const existingModal = document.getElementById('statusModal');
+    if (existingModal) existingModal.remove();
+
+    // Add and show modal
+    document.body.insertAdjacentHTML('beforeend', statusHtml);
+    const modal = new bootstrap.Modal(document.getElementById('statusModal'));
+    modal.show();
+}
+
+function refreshStatus(followUpId) {
+    showInfoToast('Refreshing status...');
+    setTimeout(() => {
+        trackEmergencyStatus(followUpId);
+    }, 1000);
+}
+
+function shareEmergencyReport(followUpId) {
+    const report = emergencyReports.find(r => r.followUpId === followUpId);
+    if (!report) return;
+
+    const shareText = `Emergency Report Update\n\nFollow-up ID: ${followUpId}\nType: ${report.type}\nSeverity: ${report.severity}\nLocation: ${report.location.lat.toFixed(4)}, ${report.location.lng.toFixed(4)}\nTime: ${new Date(report.timestamp).toLocaleString()}\n\nTrack status at: [Emergency App]`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Emergency Report',
+            text: shareText
+        });
+    } else {
+        navigator.clipboard.writeText(shareText);
+        showSuccessToast('Emergency report details copied to clipboard!');
+    }
+}
+
+function viewMyReports() {
+    if (emergencyReports.length === 0) {
+        showInfoToast('No emergency reports found.');
+        return;
+    }
+
+    const reportsHtml = `
+        <div class="modal fade" id="myReportsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-list me-2"></i>My Emergency Reports
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Follow-up ID</th>
+                                        <th>Type</th>
+                                        <th>Severity</th>
+                                        <th>Date/Time</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${emergencyReports.slice(-10).reverse().map(report => `
+                                        <tr>
+                                            <td><code>${report.followUpId}</code></td>
+                                            <td><i class="fas fa-${getTypeIcon(report.type)} me-1"></i>${report.type}</td>
+                                            <td><span class="badge bg-${getSeverityColor(report.severity)}">${report.severity}</span></td>
+                                            <td>${new Date(report.timestamp).toLocaleString()}</td>
+                                            <td><span class="badge bg-info">${report.status}</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="trackEmergencyStatus('${report.followUpId}')">
+                                                    <i class="fas fa-search"></i> Track
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        ${emergencyReports.length > 10 ? `<p class="text-muted">Showing last 10 reports of ${emergencyReports.length} total.</p>` : ''}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" onclick="clearAllReports()">
+                            <i class="fas fa-trash me-1"></i>Clear All Reports
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal
+    const existingModal = document.getElementById('myReportsModal');
+    if (existingModal) existingModal.remove();
+
+    // Add and show modal
+    document.body.insertAdjacentHTML('beforeend', reportsHtml);
+    const modal = new bootstrap.Modal(document.getElementById('myReportsModal'));
+    modal.show();
+}
+
+function getTypeIcon(type) {
+    const icons = {
+        fire: 'fire',
+        medical: 'ambulance',
+        accident: 'car-crash',
+        crime: 'shield-alt',
+        other: 'exclamation-triangle'
+    };
+    return icons[type] || 'exclamation-triangle';
+}
+
+function clearAllReports() {
+    if (confirm('Are you sure you want to clear all emergency reports? This action cannot be undone.')) {
+        emergencyReports = [];
+        localStorage.removeItem('emergencyReports');
+        showSuccessToast('All emergency reports cleared.');
+
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('myReportsModal'));
+        if (modal) modal.hide();
+    }
+}
+
+// Advanced pathfinding control functions
+function findOptimalHospitals(criteria) {
+    const targets = findOptimalPath('hospital', criteria);
+    if (targets && targets.length > 0) {
+        showPathfindingResults(targets, 'hospital');
+    }
+}
+
+function findOptimalStations(criteria) {
+    const targets = findOptimalPath('station', criteria);
+    if (targets && targets.length > 0) {
+        showPathfindingResults(targets, 'station');
+    }
+}
+
+function showGraphInfo() {
+    if (!emergencyGraph) {
+        initializeEmergencyGraph();
+    }
+
+    const vertices = emergencyGraph.vertices.size;
+    const hospitals = Array.from(emergencyGraph.vertices.values()).filter(v => v.type === 'hospital').length;
+    const stations = Array.from(emergencyGraph.vertices.values()).filter(v => v.type === 'station').length;
+    const emergencies = Array.from(emergencyGraph.vertices.values()).filter(v => v.type === 'emergency').length;
+
+    const infoHtml = `
+        <div class="modal fade" id="graphInfoModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-project-diagram me-2"></i>Emergency Network Graph
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Dijkstra's Algorithm</h6>
+                            <p class="mb-0">This system uses Dijkstra's algorithm to find the shortest paths between your location and emergency facilities. The algorithm guarantees optimal routes based on real distances.</p>
+                        </div>
+
+                        <h6>Network Statistics:</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><i class="fas fa-circle text-primary me-2"></i>Total Vertices</span>
+                                <strong>${vertices}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><i class="fas fa-hospital text-info me-2"></i>Hospitals</span>
+                                <strong>${hospitals}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><i class="fas fa-truck text-warning me-2"></i>Fire Stations</span>
+                                <strong>${stations}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><i class="fas fa-fire text-danger me-2"></i>Active Emergencies</span>
+                                <strong>${emergencies}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><i class="fas fa-route text-success me-2"></i>Total Edges</span>
+                                <strong>${vertices * (vertices - 1) / 2}</strong>
+                            </li>
+                        </ul>
+
+                        <div class="mt-3">
+                            <h6>Algorithm Features:</h6>
+                            <ul class="small">
+                                <li>✅ Optimal shortest path calculation</li>
+                                <li>✅ Real-time distance computation</li>
+                                <li>✅ Multiple sorting criteria</li>
+                                <li>✅ Visual route display</li>
+                                <li>✅ Complete graph connectivity</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal
+    const existingModal = document.getElementById('graphInfoModal');
+    if (existingModal) existingModal.remove();
+
+    // Add and show modal
+    document.body.insertAdjacentHTML('beforeend', infoHtml);
+    const modal = new bootstrap.Modal(document.getElementById('graphInfoModal'));
+    modal.show();
 }
 
 function shareLocation() {
@@ -713,12 +2128,12 @@ function shareLocation() {
         const locationText = `My location: ${mapUserLocation.lat.toFixed(4)}, ${mapUserLocation.lng.toFixed(4)}`;
         if (navigator.clipboard) {
             navigator.clipboard.writeText(locationText);
-            alert('Location copied to clipboard!');
+            showSuccessToast('Location copied to clipboard!');
         } else {
             alert(locationText);
         }
     } else {
-        alert('Please get your location first');
+        showErrorToast('Please get your location first');
     }
 }
 
@@ -911,6 +2326,18 @@ function testMap() {
 // Initialize map when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing map...');
+
+    // Initialize language preference
+    const savedLanguage = localStorage.getItem('preferredLanguage');
+    if (savedLanguage) {
+        currentLanguage = savedLanguage;
+    }
+
+    // Load emergency reports from localStorage
+    const savedReports = localStorage.getItem('emergencyReports');
+    if (savedReports) {
+        emergencyReports = JSON.parse(savedReports);
+    }
 
     // Wait a bit for everything to load
     setTimeout(function() {

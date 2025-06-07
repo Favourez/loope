@@ -9,9 +9,11 @@ services:
       - "3000:3000"
     environment:
       - FLASK_ENV=production
+    command: gunicorn -b 0.0.0.0:3000 app:app
     networks:
       - monitoring
     restart: unless-stopped
+
 
   # Prometheus
   prometheus:
