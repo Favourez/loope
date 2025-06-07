@@ -19,6 +19,7 @@ USER app
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+  CMD python -c "import requests; exit(0) if requests.get('http://localhost:3000/health').status_code == 200 else exit(1)"
+
 
 CMD ["gunicorn", "-b", "0.0.0.0:3000", "app:app"]
