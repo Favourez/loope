@@ -1,13 +1,30 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import json
 import os
 import time
 from datetime import datetime
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 from prometheus_flask_exporter import PrometheusMetrics
+from database import init_database, create_user, create_emergency_report, get_emergency_reports, update_report_status, get_fire_departments
+from auth import User, load_user, login_user_by_credentials
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_message_category = 'info'
+
+@login_manager.user_loader
+def load_user_callback(user_id):
+    return load_user(user_id)
+
+# Initialize database
+init_database()
 
 # Initialize Prometheus metrics
 metrics = PrometheusMetrics(app)
@@ -103,20 +120,137 @@ FIRST_AID_PRACTICES = [
 @app.route('/')
 def welcome():
     page_views_total.labels(page='welcome').inc()
-    user_id = request.remote_addr
-    active_users.add(user_id)
-    active_users_gauge.set(len(active_users))
-    return render_template('welcome.html')
+    if current_user.is_authenticated:
+        if current_user.is_fire_department():
+            return redirect(url_for('fire_department_dashboard'))
+        else:
+            return redirect(url_for('landing'))
+    return redirect(url_for('login'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('welcome'))
+
+    if request.method == 'POST':
+        try:
+            username = request.form['username']
+            email = request.form['email']
+            password = request.form['password']
+            confirm_password = request.form['confirm_password']
+            user_type = request.form['user_type']
+            full_name = request.form['full_name']
+            phone = request.form.get('phone')
+            department_name = request.form.get('department_name')
+            department_location = request.form.get('department_location')
+
+            # Validation
+            if password != confirm_password:
+                return render_template('register.html', error='Passwords do not match')
+
+            if len(password) < 6:
+                return render_template('register.html', error='Password must be at least 6 characters long')
+
+            if user_type not in ['user', 'fire_department']:
+                return render_template('register.html', error='Invalid user type')
+
+            # Create user
+            user_id = create_user(
+                username=username,
+                email=email,
+                password=password,
+                user_type=user_type,
+                full_name=full_name,
+                phone=phone,
+                department_name=department_name,
+                department_location=department_location
+            )
+
+            return redirect(url_for('login', success='Registration successful! Please log in.'))
+
+        except ValueError as e:
+            return render_template('register.html', error=str(e))
+        except Exception as e:
+            return render_template('register.html', error='Registration failed. Please try again.')
+
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('welcome'))
+
+    success_message = request.args.get('success')
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        remember_me = 'remember_me' in request.form
+
+        user = login_user_by_credentials(username, password)
+        if user:
+            login_user(user, remember=remember_me)
+            user_id = request.remote_addr
+            active_users.add(user_id)
+            active_users_gauge.set(len(active_users))
+
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+
+            if user.is_fire_department():
+                return redirect(url_for('fire_department_dashboard'))
+            else:
+                return redirect(url_for('landing'))
+        else:
+            return render_template('login.html', error='Invalid username or password')
+
+    return render_template('login.html', success=success_message)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 @app.route('/landing')
+@login_required
 def landing():
+    if current_user.is_fire_department():
+        return redirect(url_for('fire_department_dashboard'))
+
     page_views_total.labels(page='landing').inc()
     user_id = request.remote_addr
     active_users.add(user_id)
     active_users_gauge.set(len(active_users))
     return render_template('landing.html')
 
+@app.route('/fire-department-dashboard')
+@login_required
+def fire_department_dashboard():
+    if not current_user.is_fire_department():
+        return redirect(url_for('landing'))
+
+    page_views_total.labels(page='fire_department_dashboard').inc()
+
+    # Get emergency reports
+    emergency_reports = get_emergency_reports(limit=20)
+    active_reports = [r for r in emergency_reports if r['status'] == 'reported']
+    responding_reports = [r for r in emergency_reports if r['status'] == 'responding']
+
+    # Count resolved reports today
+    from datetime import date
+    today = date.today().isoformat()
+    resolved_today = len([r for r in emergency_reports if r['status'] == 'resolved' and r['updated_at'].startswith(today)])
+
+    return render_template('fire_department_landing.html',
+                         emergency_reports=emergency_reports,
+                         active_reports=active_reports,
+                         responding_reports=responding_reports,
+                         resolved_today=resolved_today)
+
 @app.route('/map')
+@login_required
 def map_page():
     page_views_total.labels(page='map').inc()
     return render_template('map.html')
@@ -127,27 +261,32 @@ def test_map():
         return f.read()
 
 @app.route('/messages')
+@login_required
 def messages():
     page_views_total.labels(page='messages').inc()
     return render_template('messages.html')
 
 @app.route('/help')
+@login_required
 def help_page():
     page_views_total.labels(page='help').inc()
     return render_template('help.html')
 
 @app.route('/settings')
+@login_required
 def settings():
     page_views_total.labels(page='settings').inc()
     return render_template('settings.html')
 
 @app.route('/first-aid')
+@login_required
 def first_aid():
     page_views_total.labels(page='first_aid').inc()
     first_aid_views_total.labels(practice_id='overview', practice_name='overview').inc()
     return render_template('first_aid.html', practices=FIRST_AID_PRACTICES)
 
 @app.route('/first-aid/<int:practice_id>')
+@login_required
 def first_aid_detail(practice_id):
     practice = next((p for p in FIRST_AID_PRACTICES if p['id'] == practice_id), None)
     if not practice:
@@ -168,6 +307,7 @@ def guidelines():
     return render_template('guidelines.html')
 
 @app.route('/report-emergency', methods=['POST'])
+@login_required
 def report_emergency():
     data = request.get_json()
 
@@ -186,9 +326,37 @@ def report_emergency():
     except:
         system_health_gauge.set(95)  # Default health if calculation fails
 
-    # Here you would typically save to database
-    # For now, we'll just return a success response
-    return jsonify({'status': 'success', 'message': 'Emergency reported successfully'})
+    # Save to database
+    try:
+        report_id = create_emergency_report(
+            user_id=current_user.id,
+            location=data.get('location', ''),
+            description=data.get('description', ''),
+            severity=severity,
+            latitude=data.get('latitude'),
+            longitude=data.get('longitude'),
+            location_accuracy=data.get('location_accuracy')
+        )
+        return jsonify({'status': 'success', 'message': 'Emergency reported successfully', 'report_id': report_id})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': 'Failed to save emergency report'}), 500
+
+@app.route('/update-report-status', methods=['POST'])
+@login_required
+def update_report_status_route():
+    if not current_user.is_fire_department():
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+
+    data = request.get_json()
+    report_id = data.get('report_id')
+    status = data.get('status')
+    department_id = data.get('department_id')
+
+    try:
+        update_report_status(report_id, status, department_id)
+        return jsonify({'success': True, 'message': 'Report status updated successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Failed to update report status'}), 500
 
 @app.route('/health')
 def health_check():

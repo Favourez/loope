@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Emergency Response App{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3><i class="fas fa-user-plus me-2"></i>Register for Emergency Response App</h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- User Type Selection -->
+                    <div class="mb-4">
+                        <h5 class="text-center mb-3">Choose Your Account Type</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-success user-type-card" data-type="user">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user fa-3x text-success mb-3"></i>
+                                        <h5>Regular User</h5>
+                                        <p class="text-muted">Report emergencies and access first aid guides</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-danger user-type-card" data-type="fire_department">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-fire-extinguisher fa-3x text-danger mb-3"></i>
+                                        <h5>Fire Department</h5>
+                                        <p class="text-muted">Manage emergency responses and reports</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" id="registrationForm">
+                        <input type="hidden" name="user_type" id="user_type" required>
+                        
+                        <!-- Common Fields -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fire Department Specific Fields -->
+                        <div id="fire_department_fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="department_name" class="form-label">Department Name</label>
+                                        <input type="text" class="form-control" id="department_name" name="department_name">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="department_location" class="form-label">Department Location</label>
+                                        <input type="text" class="form-control" id="department_location" name="department_location">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeCards = document.querySelectorAll('.user-type-card');
+    const userTypeInput = document.getElementById('user_type');
+    const fireDepartmentFields = document.getElementById('fire_department_fields');
+    const form = document.getElementById('registrationForm');
+    
+    // Handle user type selection
+    userTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Remove active class from all cards
+            userTypeCards.forEach(c => c.classList.remove('border-primary', 'bg-light'));
+            
+            // Add active class to selected card
+            this.classList.add('border-primary', 'bg-light');
+            
+            // Set user type
+            const userType = this.dataset.type;
+            userTypeInput.value = userType;
+            
+            // Show/hide fire department fields
+            if (userType === 'fire_department') {
+                fireDepartmentFields.style.display = 'block';
+                document.getElementById('department_name').required = true;
+                document.getElementById('department_location').required = true;
+            } else {
+                fireDepartmentFields.style.display = 'none';
+                document.getElementById('department_name').required = false;
+                document.getElementById('department_location').required = false;
+            }
+        });
+    });
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        const userType = userTypeInput.value;
+        
+        if (!userType) {
+            e.preventDefault();
+            alert('Please select an account type.');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match.');
+            return;
+        }
+        
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long.');
+            return;
+        }
+    });
+});
+</script>
+
+<style>
+.user-type-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.user-type-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

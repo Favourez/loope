@@ -15,6 +15,11 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-user me-1"></i>{{ current_user.full_name }}
+                    </span>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-ellipsis-v me-1"></i>Menu
@@ -32,6 +37,9 @@
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ url_for('settings') }}">
                             <i class="fas fa-cog me-2"></i>Settings
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
                         </a></li>
                     </ul>
                 </li>
@@ -62,25 +70,39 @@
                 </div>
                 <div class="card-body">
                     <p class="card-text">Report fire emergencies in your area quickly and efficiently.</p>
+
+                    <!-- Location Status -->
+                    <div id="locationStatus" class="alert alert-info" style="display: none;">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <span id="locationText">Getting your location...</span>
+                    </div>
+
                     <form id="emergencyForm">
                         <div class="mb-3">
-                            <label for="location" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="location" placeholder="Enter emergency location" required>
+                            <label for="location" class="form-label">Location Description</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="location" placeholder="Describe the emergency location" required>
+                                <button type="button" class="btn btn-outline-primary" id="detectLocationBtn" onclick="detectCurrentLocation()">
+                                    <i class="fas fa-crosshairs me-1"></i>Detect
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">Your exact GPS coordinates will be automatically included</small>
                         </div>
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" rows="3" placeholder="Describe the emergency"></textarea>
+                            <label for="description" class="form-label">Emergency Description</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Describe what you see (fire size, smoke, people affected, etc.)" required></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="severity" class="form-label">Severity Level</label>
-                            <select class="form-select" id="severity">
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                                <option value="critical">Critical</option>
+                            <select class="form-select" id="severity" required>
+                                <option value="">Select severity...</option>
+                                <option value="low">🟢 Low - Small fire, no immediate danger</option>
+                                <option value="medium">🟡 Medium - Moderate fire, some risk</option>
+                                <option value="high">🟠 High - Large fire, significant danger</option>
+                                <option value="critical">🔴 Critical - Life-threatening emergency</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-danger btn-lg w-100">
+                        <button type="submit" class="btn btn-danger btn-lg w-100" id="submitEmergencyBtn">
                             <i class="fas fa-exclamation-triangle me-2"></i>Report Emergency
                         </button>
                     </form>
@@ -174,13 +196,150 @@
 
 {% block extra_scripts %}
 <script>
+// Global variables for location
+let userLocation = null;
+let locationWatchId = null;
+
+// Initialize location detection when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeLocationDetection();
+});
+
+function initializeLocationDetection() {
+    if (navigator.geolocation) {
+        const locationStatus = document.getElementById('locationStatus');
+        const locationText = document.getElementById('locationText');
+
+        locationStatus.style.display = 'block';
+        locationText.textContent = 'Getting your location...';
+
+        // Get current position with high accuracy
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                userLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy,
+                    timestamp: new Date().toISOString()
+                };
+
+                locationStatus.className = 'alert alert-success';
+                locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>Location detected (±${Math.round(position.coords.accuracy)}m accuracy)`;
+
+                console.log('User location obtained:', userLocation);
+            },
+            function(error) {
+                console.warn('Location error:', error.message);
+                locationStatus.className = 'alert alert-warning';
+
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Location access denied. Emergency will be reported without GPS coordinates.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Location unavailable. Emergency will be reported without GPS coordinates.';
+                        break;
+                    case error.TIMEOUT:
+                        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Location timeout. Emergency will be reported without GPS coordinates.';
+                        break;
+                    default:
+                        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Location error. Emergency will be reported without GPS coordinates.';
+                        break;
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 60000 // 1 minute
+            }
+        );
+    } else {
+        const locationStatus = document.getElementById('locationStatus');
+        const locationText = document.getElementById('locationText');
+
+        locationStatus.style.display = 'block';
+        locationStatus.className = 'alert alert-warning';
+        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Geolocation not supported by this browser.';
+    }
+}
+
+function detectCurrentLocation() {
+    const btn = document.getElementById('detectLocationBtn');
+    const originalText = btn.innerHTML;
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Detecting...';
+    btn.disabled = true;
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                userLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Use reverse geocoding to get address (simplified)
+                const locationInput = document.getElementById('location');
+                locationInput.value = `GPS: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
+
+                const locationStatus = document.getElementById('locationStatus');
+                const locationText = document.getElementById('locationText');
+                locationStatus.className = 'alert alert-success';
+                locationStatus.style.display = 'block';
+                locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>Location updated (±${Math.round(position.coords.accuracy)}m accuracy)`;
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            },
+            function(error) {
+                console.warn('Location detection error:', error.message);
+                alert('Could not detect your location. Please enter the location manually.');
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 30000
+            }
+        );
+    } else {
+        alert('Geolocation is not supported by this browser.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
 document.getElementById('emergencyForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
+    const submitBtn = document.getElementById('submitEmergencyBtn');
+    const originalText = submitBtn.innerHTML;
+
+    // Validate form
+    const location = document.getElementById('location').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const severity = document.getElementById('severity').value;
+
+    if (!location || !description || !severity) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+
+    // Show loading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Reporting Emergency...';
+    submitBtn.disabled = true;
+
     const formData = {
-        location: document.getElementById('location').value,
-        description: document.getElementById('description').value,
-        severity: document.getElementById('severity').value,
+        location: location,
+        description: description,
+        severity: severity,
+        latitude: userLocation ? userLocation.latitude : null,
+        longitude: userLocation ? userLocation.longitude : null,
+        location_accuracy: userLocation ? userLocation.accuracy : null,
         timestamp: new Date().toISOString()
     };
 
@@ -193,11 +352,48 @@ document.getElementById('emergencyForm').addEventListener('submit', function(e) 
     })
     .then(response => response.json())
     .then(data => {
-        alert('Emergency reported successfully! Emergency services have been notified.');
-        this.reset();
+        if (data.status === 'success') {
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Emergency Reported Successfully!</strong><br>
+                Report ID: ${data.report_id}<br>
+                Emergency services have been notified and will respond shortly.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            // Insert alert at the top of the card body
+            const cardBody = document.querySelector('.card-body');
+            cardBody.insertBefore(alertDiv, cardBody.firstChild);
+
+            // Reset form
+            this.reset();
+
+            // Reset location status
+            if (userLocation) {
+                const locationStatus = document.getElementById('locationStatus');
+                const locationText = document.getElementById('locationText');
+                locationStatus.className = 'alert alert-success';
+                locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>Location detected (±${Math.round(userLocation.accuracy)}m accuracy)`;
+            }
+
+            // Scroll to top to show success message
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        } else {
+            throw new Error(data.message || 'Unknown error occurred');
+        }
     })
     .catch(error => {
-        alert('Error reporting emergency. Please try again or call emergency services directly.');
+        console.error('Emergency reporting error:', error);
+        alert('Error reporting emergency. Please try again or call emergency services directly at 118.');
+    })
+    .finally(() => {
+        // Restore button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
     });
 });
 

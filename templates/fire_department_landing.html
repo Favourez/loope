@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+
+{% block title %}Fire Department Dashboard - Emergency Response App{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('fire_department_dashboard') }}">
+            <i class="fas fa-fire-extinguisher me-2"></i>Fire Department Dashboard
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-user me-1"></i>{{ current_user.department_name or current_user.full_name }}
+                    </span>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v me-1"></i>Menu
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('map_page') }}">
+                            <i class="fas fa-map-marked-alt me-2"></i>Emergency Map
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('messages') }}">
+                            <i class="fas fa-comments me-2"></i>Communications
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('settings') }}">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Emergency Status Banner -->
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Active Emergencies:</strong> {{ active_reports|length }} reports pending response
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <h4>{{ active_reports|length }}</h4>
+                    <p class="mb-0">Active Reports</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <h4>{{ responding_reports|length }}</h4>
+                    <p class="mb-0">Responding</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h4>{{ resolved_today }}</h4>
+                    <p class="mb-0">Resolved Today</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <i class="fas fa-fire-extinguisher fa-2x mb-2"></i>
+                    <h4>{{ current_user.department_name or 'Fire Dept' }}</h4>
+                    <p class="mb-0">Department</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Emergency Reports Section -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-fire me-2"></i>Emergency Reports
+                    </h4>
+                    <button class="btn btn-light btn-sm" onclick="refreshReports()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Severity</th>
+                                    <th>Reporter</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTableBody">
+                                {% for report in emergency_reports %}
+                                <tr class="{% if report.severity == 'critical' %}table-danger{% elif report.severity == 'high' %}table-warning{% endif %}" data-report-id="{{ report.id }}">
+                                    <td>
+                                        <small class="text-muted">{{ report.reported_at }}</small>
+                                        {% if report.latitude and report.longitude %}
+                                        <br><small class="text-success">
+                                            <i class="fas fa-map-marker-alt"></i> GPS Available
+                                            {% if report.location_accuracy %}
+                                            (±{{ "%.0f"|format(report.location_accuracy) }}m)
+                                            {% endif %}
+                                        </small>
+                                        {% else %}
+                                        <br><small class="text-warning">
+                                            <i class="fas fa-map-marker"></i> No GPS
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ report.location }}</strong>
+                                        {% if report.latitude and report.longitude %}
+                                        <br><small class="text-muted">
+                                            <i class="fas fa-globe"></i> {{ "%.6f"|format(report.latitude) }}, {{ "%.6f"|format(report.longitude) }}
+                                            <button class="btn btn-sm btn-outline-primary ms-1" onclick="openInMaps({{ report.latitude }}, {{ report.longitude }})">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </button>
+                                        </small>
+                                        {% endif %}
+                                        {% if report.description %}
+                                        <br><small class="text-muted">{{ report.description[:80] }}{% if report.description|length > 80 %}...{% endif %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if report.severity == 'critical' %}danger{% elif report.severity == 'high' %}warning{% elif report.severity == 'medium' %}info{% else %}secondary{% endif %}">
+                                            {% if report.severity == 'critical' %}🔴{% elif report.severity == 'high' %}🟠{% elif report.severity == 'medium' %}🟡{% else %}🟢{% endif %}
+                                            {{ report.severity.upper() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ report.reporter_name or 'Anonymous' }}
+                                        {% if report.reporter_phone %}
+                                        <br><a href="tel:{{ report.reporter_phone }}" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-phone"></i> {{ report.reporter_phone }}
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if report.status == 'reported' %}danger{% elif report.status == 'responding' %}warning{% elif report.status == 'resolved' %}success{% else %}secondary{% endif %}">
+                                            {{ report.status.upper() }}
+                                        </span>
+                                        <br><small class="text-muted">{{ report.updated_at }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm">
+                                            {% if report.status == 'reported' %}
+                                            <button class="btn btn-warning mb-1" onclick="updateReportStatus({{ report.id }}, 'responding')" title="Start Response">
+                                                <i class="fas fa-play"></i> Respond
+                                            </button>
+                                            {% elif report.status == 'responding' %}
+                                            <button class="btn btn-success mb-1" onclick="updateReportStatus({{ report.id }}, 'resolved')" title="Mark as Resolved">
+                                                <i class="fas fa-check"></i> Resolve
+                                            </button>
+                                            {% endif %}
+                                            <button class="btn btn-info mb-1" onclick="viewReportDetails({{ report.id }})" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if report.latitude and report.longitude %}
+                                            <button class="btn btn-primary" onclick="getDirections({{ report.latitude }}, {{ report.longitude }})" title="Get Directions">
+                                                <i class="fas fa-route"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Resources -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-danger" onclick="broadcastAlert()">
+                            <i class="fas fa-broadcast-tower me-2"></i>Broadcast Alert
+                        </button>
+                        <button class="btn btn-warning" onclick="requestBackup()">
+                            <i class="fas fa-users me-2"></i>Request Backup
+                        </button>
+                        <a href="{{ url_for('map_page') }}" class="btn btn-info">
+                            <i class="fas fa-map-marked-alt me-2"></i>View Emergency Map
+                        </a>
+                        <button class="btn btn-success" onclick="generateReport()">
+                            <i class="fas fa-file-alt me-2"></i>Generate Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contacts -->
+            <div class="card mt-3">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-phone me-2"></i>Emergency Contacts
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Police Emergency</span>
+                            <strong>117</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Medical Emergency</span>
+                            <strong>119</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Fire Command Center</span>
+                            <strong>118-001</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function updateReportStatus(reportId, status) {
+    if (confirm(`Are you sure you want to mark this report as ${status}?`)) {
+        const row = document.querySelector(`tr[data-report-id="${reportId}"]`);
+        if (row) {
+            row.style.opacity = '0.5';
+        }
+
+        fetch('/update-report-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                report_id: reportId,
+                status: status,
+                department_id: {{ current_user.id }}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Success', `Report status updated to ${status}`, 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert('Error updating report status: ' + (data.message || 'Unknown error'));
+                if (row) row.style.opacity = '1';
+            }
+        })
+        .catch(error => {
+            console.error('Error updating report status:', error);
+            alert('Error updating report status. Please try again.');
+            if (row) row.style.opacity = '1';
+        });
+    }
+}
+
+function refreshReports() {
+    location.reload();
+}
+
+function viewReportDetails(reportId) {
+    // Create a modal to show report details
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Emergency Report Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading report details...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+
+    // Remove modal when hidden
+    modal.addEventListener('hidden.bs.modal', () => {
+        document.body.removeChild(modal);
+    });
+
+    // For now, show basic info - in a real app, fetch from API
+    setTimeout(() => {
+        const row = document.querySelector(`tr[data-report-id="${reportId}"]`);
+        if (row) {
+            const cells = row.querySelectorAll('td');
+            modal.querySelector('.modal-body').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Report Information</h6>
+                        <p><strong>Report ID:</strong> ${reportId}</p>
+                        <p><strong>Time:</strong> ${cells[0]?.textContent.trim()}</p>
+                        <p><strong>Location:</strong> ${cells[1]?.querySelector('strong')?.textContent}</p>
+                        <p><strong>Severity:</strong> ${cells[2]?.textContent.trim()}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Reporter Information</h6>
+                        <p><strong>Reporter:</strong> ${cells[3]?.textContent.trim()}</p>
+                        <p><strong>Status:</strong> ${cells[4]?.textContent.trim()}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h6>Actions</h6>
+                    <button class="btn btn-primary me-2" onclick="getDirections(reportId)">
+                        <i class="fas fa-route"></i> Get Directions
+                    </button>
+                    <button class="btn btn-success me-2" onclick="callReporter(reportId)">
+                        <i class="fas fa-phone"></i> Call Reporter
+                    </button>
+                </div>
+            `;
+        }
+    }, 500);
+}
+
+function openInMaps(lat, lng) {
+    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+    window.open(url, '_blank');
+}
+
+function getDirections(lat, lng) {
+    if (lat && lng) {
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        window.open(url, '_blank');
+    } else {
+        alert('GPS coordinates not available for this report.');
+    }
+}
+
+function broadcastAlert() {
+    const message = prompt('Enter alert message to broadcast to all units:');
+    if (message && message.trim()) {
+        if (confirm(`Broadcast this message to all emergency units?\n\n"${message}"`)) {
+            showNotification('Alert Broadcast', 'Emergency alert sent to all units', 'warning');
+            // In a real app, this would send to all units
+            console.log('Broadcasting alert:', message);
+        }
+    }
+}
+
+function requestBackup() {
+    if (confirm('Request backup from other fire departments?')) {
+        showNotification('Backup Requested', 'Backup request sent to nearby departments', 'info');
+        // In a real app, this would send backup requests
+        console.log('Backup requested');
+    }
+}
+
+function generateReport() {
+    showNotification('Report Generation', 'Generating daily emergency report...', 'info');
+    // In a real app, this would generate and download a report
+    setTimeout(() => {
+        alert('Daily report generated successfully! Check your downloads folder.');
+    }, 2000);
+}
+
+function showNotification(title, message, type = 'info') {
+    const alertClass = type === 'success' ? 'alert-success' :
+                     type === 'warning' ? 'alert-warning' :
+                     type === 'danger' ? 'alert-danger' : 'alert-info';
+
+    const notification = document.createElement('div');
+    notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        <strong>${title}:</strong> ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Auto-refresh every 30 seconds
+setInterval(function() {
+    refreshReports();
+}, 30000);
+
+// Add sound notification for new emergencies (optional)
+let lastReportCount = {{ emergency_reports|length }};
+
+function checkForNewReports() {
+    fetch('/fire-department-dashboard')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newReportCount = doc.querySelectorAll('tr[data-report-id]').length;
+
+            if (newReportCount > lastReportCount) {
+                showNotification('New Emergency', `${newReportCount - lastReportCount} new emergency report(s) received!`, 'danger');
+                // Optional: Play notification sound
+                // new Audio('/static/sounds/emergency-alert.mp3').play().catch(() => {});
+            }
+
+            lastReportCount = newReportCount;
+        })
+        .catch(error => {
+            console.error('Error checking for new reports:', error);
+        });
+}
+
+// Check for new reports every 15 seconds
+setInterval(checkForNewReports, 15000);
+</script>
+{% endblock %}
