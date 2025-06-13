@@ -146,12 +146,29 @@ def get_user_by_id(user_id):
     conn.close()
     return dict(user) if user else None
 
-def authenticate_user(username, password):
-    """Authenticate user with username and password"""
-    user = get_user_by_username(username)
+def authenticate_user(username_or_email, password):
+    """Authenticate user with username/email and password"""
+    # Try to find user by username first
+    user = get_user_by_username(username_or_email)
+
+    # If not found by username, try by email
+    if not user:
+        user = get_user_by_email(username_or_email)
+
+    # Verify password if user found
     if user and verify_password(password, user['password_hash']):
         return user
     return None
+
+def get_user_by_email(email):
+    """Get user by email"""
+    conn = get_db_connection()
+    user = conn.execute(
+        'SELECT * FROM users WHERE email = ? AND is_active = 1',
+        (email,)
+    ).fetchone()
+    conn.close()
+    return dict(user) if user else None
 
 def create_emergency_report(user_id, location, description, severity, latitude=None, longitude=None, location_accuracy=None):
     """Create a new emergency report"""

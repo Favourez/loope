@@ -9,7 +9,7 @@ from prometheus_flask_exporter import PrometheusMetrics
 from database import (init_database, create_user, create_emergency_report, get_emergency_reports,
                      update_report_status, get_fire_departments, create_message, get_messages,
                      delete_message, like_message, update_user_profile, change_user_password,
-                     delete_user_account, verify_password, get_user_by_id)
+                     delete_user_account, verify_password, get_user_by_id, get_user_by_email)
 from auth import User, load_user, login_user_by_credentials
 import smtplib
 from email.mime.text import MIMEText
@@ -226,11 +226,11 @@ def login():
     success_message = request.args.get('success')
 
     if request.method == 'POST':
-        username = request.form['username']
+        username_or_email = request.form['username']
         password = request.form['password']
         remember_me = 'remember_me' in request.form
 
-        user = login_user_by_credentials(username, password)
+        user = login_user_by_credentials(username_or_email, password)
         if user:
             login_user(user, remember=remember_me)
             user_id = request.remote_addr
@@ -246,7 +246,7 @@ def login():
             else:
                 return redirect(url_for('landing'))
         else:
-            return render_template('login.html', error='Invalid username or password')
+            return render_template('login.html', error='Invalid username/email or password')
 
     return render_template('login.html', success=success_message)
 

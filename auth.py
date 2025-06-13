@@ -36,9 +36,9 @@ def load_user(user_id):
         return User(user_data)
     return None
 
-def login_user_by_credentials(username, password):
+def login_user_by_credentials(username_or_email, password):
     """Authenticate and return User object"""
-    user_data = authenticate_user(username, password)
+    user_data = authenticate_user(username_or_email, password)
     if user_data:
         return User(user_data)
     return None
