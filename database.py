@@ -74,6 +74,21 @@ def init_database():
         )
     ''')
 
+    # Create messages table for community chat
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            message_type TEXT DEFAULT 'general' CHECK (message_type IN ('general', 'info', 'alert', 'emergency')),
+            likes INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_deleted BOOLEAN DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
     conn.commit()
     conn.close()
     print("Database initialized successfully!")
@@ -208,6 +223,131 @@ def get_fire_departments():
     ).fetchall()
     conn.close()
     return [dict(dept) for dept in departments]
+
+def create_message(user_id, content, message_type='general'):
+    """Create a new message"""
+    conn = get_db_connection()
+
+    cursor = conn.execute('''
+        INSERT INTO messages (user_id, content, message_type)
+        VALUES (?, ?, ?)
+    ''', (user_id, content, message_type))
+
+    conn.commit()
+    message_id = cursor.lastrowid
+    conn.close()
+    return message_id
+
+def get_messages(limit=50):
+    """Get recent messages with user information"""
+    conn = get_db_connection()
+
+    messages = conn.execute('''
+        SELECT m.*, u.full_name, u.user_type, u.username
+        FROM messages m
+        LEFT JOIN users u ON m.user_id = u.id
+        WHERE m.is_deleted = 0
+        ORDER BY m.created_at DESC
+        LIMIT ?
+    ''', (limit,)).fetchall()
+
+    conn.close()
+    return [dict(message) for message in reversed(messages)]
+
+def delete_message(message_id, user_id):
+    """Delete a message (soft delete)"""
+    conn = get_db_connection()
+
+    # Check if user owns the message
+    message = conn.execute(
+        'SELECT user_id FROM messages WHERE id = ? AND is_deleted = 0',
+        (message_id,)
+    ).fetchone()
+
+    if not message or message['user_id'] != user_id:
+        conn.close()
+        return False
+
+    # Soft delete the message
+    conn.execute('''
+        UPDATE messages
+        SET is_deleted = 1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (message_id,))
+
+    conn.commit()
+    conn.close()
+    return True
+
+def like_message(message_id):
+    """Increment likes for a message"""
+    conn = get_db_connection()
+
+    conn.execute('''
+        UPDATE messages
+        SET likes = likes + 1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND is_deleted = 0
+    ''', (message_id,))
+
+    # Get updated likes count
+    result = conn.execute(
+        'SELECT likes FROM messages WHERE id = ?',
+        (message_id,)
+    ).fetchone()
+
+    conn.commit()
+    conn.close()
+
+    return result['likes'] if result else 0
+
+def update_user_profile(user_id, full_name, email, username, phone=None, department_name=None, department_location=None):
+    """Update user profile information"""
+    conn = get_db_connection()
+
+    try:
+        conn.execute('''
+            UPDATE users
+            SET full_name = ?, email = ?, username = ?, phone = ?,
+                department_name = ?, department_location = ?
+            WHERE id = ?
+        ''', (full_name, email, username, phone, department_name, department_location, user_id))
+
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        conn.close()
+        return False
+
+def change_user_password(user_id, new_password):
+    """Change user password"""
+    conn = get_db_connection()
+
+    password_hash = hash_password(new_password)
+
+    conn.execute('''
+        UPDATE users
+        SET password_hash = ?
+        WHERE id = ?
+    ''', (password_hash, user_id))
+
+    conn.commit()
+    conn.close()
+    return True
+
+def delete_user_account(user_id):
+    """Delete user account (soft delete)"""
+    conn = get_db_connection()
+
+    conn.execute('''
+        UPDATE users
+        SET is_active = 0
+        WHERE id = ?
+    ''', (user_id,))
+
+    conn.commit()
+    conn.close()
+    return True
 
 # Initialize database when module is imported
 if __name__ == "__main__":

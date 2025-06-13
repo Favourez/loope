@@ -6,8 +6,51 @@ import time
 from datetime import datetime
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 from prometheus_flask_exporter import PrometheusMetrics
-from database import init_database, create_user, create_emergency_report, get_emergency_reports, update_report_status, get_fire_departments
+from database import (init_database, create_user, create_emergency_report, get_emergency_reports,
+                     update_report_status, get_fire_departments, create_message, get_messages,
+                     delete_message, like_message, update_user_profile, change_user_password,
+                     delete_user_account, verify_password, get_user_by_id)
 from auth import User, load_user, login_user_by_credentials
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# Email configuration (you can move these to environment variables)
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USER = 'your-email@gmail.com'  # Replace with your email
+EMAIL_PASSWORD = 'your-app-password'  # Replace with your app password
+EMAIL_FROM = 'Emergency Response App <your-email@gmail.com>'
+
+def send_email_notification(to_email, subject, message, html_message=None):
+    """Send email notification"""
+    try:
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = EMAIL_FROM
+        msg['To'] = to_email
+
+        # Add text part
+        text_part = MIMEText(message, 'plain')
+        msg.attach(text_part)
+
+        # Add HTML part if provided
+        if html_message:
+            html_part = MIMEText(html_message, 'html')
+            msg.attach(html_part)
+
+        # Send email
+        server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
+        server.starttls()
+        server.login(EMAIL_USER, EMAIL_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
@@ -213,6 +256,66 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        if action == 'update_profile':
+            try:
+                full_name = request.form['full_name']
+                email = request.form['email']
+                username = request.form['username']
+                phone = request.form.get('phone')
+                department_name = request.form.get('department_name')
+                department_location = request.form.get('department_location')
+
+                success = update_user_profile(
+                    user_id=current_user.id,
+                    full_name=full_name,
+                    email=email,
+                    username=username,
+                    phone=phone,
+                    department_name=department_name,
+                    department_location=department_location
+                )
+
+                if success:
+                    return render_template('profile.html', success='Profile updated successfully!')
+                else:
+                    return render_template('profile.html', error='Failed to update profile. Username or email may already exist.')
+
+            except Exception as e:
+                return render_template('profile.html', error='Failed to update profile.')
+
+        elif action == 'change_password':
+            try:
+                current_password = request.form['current_password']
+                new_password = request.form['new_password']
+
+                # Verify current password
+                user_data = get_user_by_id(current_user.id)
+                if not verify_password(current_password, user_data['password_hash']):
+                    return render_template('profile.html', error='Current password is incorrect.')
+
+                # Change password
+                change_user_password(current_user.id, new_password)
+                return render_template('profile.html', success='Password changed successfully!')
+
+            except Exception as e:
+                return render_template('profile.html', error='Failed to change password.')
+
+        elif action == 'delete_account':
+            try:
+                delete_user_account(current_user.id)
+                logout_user()
+                return redirect(url_for('login', success='Account deleted successfully.'))
+            except Exception as e:
+                return render_template('profile.html', error='Failed to delete account.')
+
+    return render_template('profile.html')
+
 @app.route('/landing')
 @login_required
 def landing():
@@ -264,7 +367,66 @@ def test_map():
 @login_required
 def messages():
     page_views_total.labels(page='messages').inc()
-    return render_template('messages.html')
+    messages_list = get_messages(limit=50)
+    return render_template('messages.html', messages=messages_list, online_users=1)
+
+@app.route('/send-message', methods=['POST'])
+@login_required
+def send_message():
+    try:
+        data = request.get_json()
+        content = data.get('content', '').strip()
+        message_type = data.get('message_type', 'general')
+
+        if not content:
+            return jsonify({'success': False, 'message': 'Message content is required'})
+
+        if len(content) > 500:
+            return jsonify({'success': False, 'message': 'Message too long (max 500 characters)'})
+
+        message_id = create_message(current_user.id, content, message_type)
+        return jsonify({'success': True, 'message_id': message_id})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Failed to send message'}), 500
+
+@app.route('/get-messages')
+@login_required
+def get_messages_api():
+    try:
+        messages_list = get_messages(limit=50)
+        return jsonify({'success': True, 'messages': messages_list})
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Failed to load messages'}), 500
+
+@app.route('/delete-message', methods=['POST'])
+@login_required
+def delete_message_api():
+    try:
+        data = request.get_json()
+        message_id = data.get('message_id')
+
+        success = delete_message(message_id, current_user.id)
+        if success:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'message': 'Unauthorized or message not found'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Failed to delete message'}), 500
+
+@app.route('/like-message', methods=['POST'])
+@login_required
+def like_message_api():
+    try:
+        data = request.get_json()
+        message_id = data.get('message_id')
+
+        likes = like_message(message_id)
+        return jsonify({'success': True, 'likes': likes})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Failed to like message'}), 500
 
 @app.route('/help')
 @login_required
@@ -337,9 +499,136 @@ def report_emergency():
             longitude=data.get('longitude'),
             location_accuracy=data.get('location_accuracy')
         )
+
+        # Send email confirmation to user
+        try:
+            send_emergency_confirmation_email(current_user, report_id, data)
+        except Exception as email_error:
+            print(f"Failed to send confirmation email: {email_error}")
+
         return jsonify({'status': 'success', 'message': 'Emergency reported successfully', 'report_id': report_id})
     except Exception as e:
         return jsonify({'status': 'error', 'message': 'Failed to save emergency report'}), 500
+
+def send_emergency_confirmation_email(user, report_id, emergency_data):
+    """Send email confirmation for emergency report"""
+    subject = f"Emergency Report Confirmation - Report #{report_id}"
+
+    # Create text message
+    text_message = f"""
+Dear {user.full_name},
+
+Your emergency report has been successfully submitted and received by our emergency response system.
+
+EMERGENCY REPORT DETAILS:
+Report ID: #{report_id}
+Location: {emergency_data.get('location', 'Not specified')}
+Severity: {emergency_data.get('severity', 'Unknown').upper()}
+Description: {emergency_data.get('description', 'No description provided')}
+Reported at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+GPS Coordinates: {'Available' if emergency_data.get('latitude') else 'Not available'}
+{f"Latitude: {emergency_data.get('latitude')}" if emergency_data.get('latitude') else ''}
+{f"Longitude: {emergency_data.get('longitude')}" if emergency_data.get('longitude') else ''}
+
+WHAT HAPPENS NEXT:
+1. Emergency services have been automatically notified
+2. Fire departments in your area will receive this report immediately
+3. Response teams will be dispatched based on severity and location
+4. You may be contacted for additional information if needed
+
+IMPORTANT REMINDERS:
+- If this is a life-threatening emergency, call 118 immediately
+- Keep your phone accessible in case emergency responders need to contact you
+- Follow any evacuation orders or safety instructions from authorities
+
+Thank you for using our emergency response system. Your safety is our priority.
+
+Emergency Response Team
+Fire Emergency Response App
+
+For urgent matters, call:
+Fire: 118 | Police: 117 | Medical: 119
+"""
+
+    # Create HTML message
+    html_message = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .header {{ background-color: #dc3545; color: white; padding: 20px; text-align: center; }}
+        .content {{ padding: 20px; }}
+        .report-details {{ background-color: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0; }}
+        .severity-{emergency_data.get('severity', 'low')} {{
+            color: {'#dc3545' if emergency_data.get('severity') == 'critical' else
+                   '#fd7e14' if emergency_data.get('severity') == 'high' else
+                   '#ffc107' if emergency_data.get('severity') == 'medium' else '#28a745'};
+            font-weight: bold;
+        }}
+        .next-steps {{ background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+        .emergency-contacts {{ background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+        .footer {{ background-color: #6c757d; color: white; padding: 15px; text-align: center; font-size: 12px; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚨 Emergency Report Confirmation</h1>
+        <p>Report #{report_id} Successfully Submitted</p>
+    </div>
+
+    <div class="content">
+        <p>Dear <strong>{user.full_name}</strong>,</p>
+
+        <p>Your emergency report has been successfully submitted and received by our emergency response system.</p>
+
+        <div class="report-details">
+            <h3>📋 Emergency Report Details</h3>
+            <p><strong>Report ID:</strong> #{report_id}</p>
+            <p><strong>Location:</strong> {emergency_data.get('location', 'Not specified')}</p>
+            <p><strong>Severity:</strong> <span class="severity-{emergency_data.get('severity', 'low')}">{emergency_data.get('severity', 'Unknown').upper()}</span></p>
+            <p><strong>Description:</strong> {emergency_data.get('description', 'No description provided')}</p>
+            <p><strong>Reported at:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p><strong>GPS Coordinates:</strong> {'✅ Available' if emergency_data.get('latitude') else '❌ Not available'}</p>
+            {f"<p><strong>Latitude:</strong> {emergency_data.get('latitude')}</p>" if emergency_data.get('latitude') else ''}
+            {f"<p><strong>Longitude:</strong> {emergency_data.get('longitude')}</p>" if emergency_data.get('longitude') else ''}
+        </div>
+
+        <div class="next-steps">
+            <h3>🚀 What Happens Next</h3>
+            <ol>
+                <li>Emergency services have been automatically notified</li>
+                <li>Fire departments in your area will receive this report immediately</li>
+                <li>Response teams will be dispatched based on severity and location</li>
+                <li>You may be contacted for additional information if needed</li>
+            </ol>
+        </div>
+
+        <div class="emergency-contacts">
+            <h3>⚠️ Important Reminders</h3>
+            <ul>
+                <li>If this is a life-threatening emergency, call <strong>118</strong> immediately</li>
+                <li>Keep your phone accessible in case emergency responders need to contact you</li>
+                <li>Follow any evacuation orders or safety instructions from authorities</li>
+            </ul>
+        </div>
+
+        <p>Thank you for using our emergency response system. Your safety is our priority.</p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Emergency Response Team</strong><br>
+        Fire Emergency Response App</p>
+        <p>For urgent matters, call:<br>
+        🔥 Fire: 118 | 👮 Police: 117 | 🚑 Medical: 119</p>
+    </div>
+</body>
+</html>
+"""
+
+    # Send the email
+    return send_email_notification(user.email, subject, text_message, html_message)
 
 @app.route('/update-report-status', methods=['POST'])
 @login_required

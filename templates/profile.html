@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Emergency Response App{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('landing') }}">
+            <i class="fas fa-shield-alt me-2"></i>Emergency Response
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-user me-1"></i>{{ current_user.full_name }}
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('landing') }}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Profile Header -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>My Profile
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-3">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                    </div>
+                    <h5>{{ current_user.full_name }}</h5>
+                    <p class="text-muted">{{ current_user.user_type.replace('_', ' ').title() }}</p>
+                    <small class="text-muted">Member since {{ current_user.created_at[:10] }}</small>
+                </div>
+            </div>
+
+            <!-- Success/Error Messages -->
+            {% if success %}
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="fas fa-check-circle me-2"></i>{{ success }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+            
+            {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            <!-- Profile Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="profileForm">
+                        <input type="hidden" name="action" value="update_profile">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" 
+                                           value="{{ current_user.full_name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ current_user.email }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" 
+                                           value="{{ current_user.username }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" 
+                                           value="{{ current_user.phone or '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if current_user.user_type == 'fire_department' %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="department_name" class="form-label">Department Name</label>
+                                    <input type="text" class="form-control" id="department_name" name="department_name" 
+                                           value="{{ current_user.department_name or '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="department_location" class="form-label">Department Location</label>
+                                    <input type="text" class="form-control" id="department_location" name="department_location" 
+                                           value="{{ current_user.department_location or '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Password -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lock me-2"></i>Change Password
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="passwordForm">
+                        <input type="hidden" name="action" value="change_password">
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" 
+                                           required minlength="6">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                           required minlength="6">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card border-danger mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Once you delete your account, there is no going back. Please be certain.</p>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteAccount()">
+                        <i class="fas fa-trash me-2"></i>Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Password form validation
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    const newPassword = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (newPassword !== confirmPassword) {
+        e.preventDefault();
+        alert('New passwords do not match.');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        e.preventDefault();
+        alert('Password must be at least 6 characters long.');
+        return;
+    }
+});
+
+// Account deletion confirmation
+function confirmDeleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        if (confirm('This will permanently delete all your data. Type "DELETE" to confirm:')) {
+            const confirmation = prompt('Type "DELETE" to confirm account deletion:');
+            if (confirmation === 'DELETE') {
+                // Create a form to submit the delete request
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = '<input type="hidden" name="action" value="delete_account">';
+                document.body.appendChild(form);
+                form.submit();
+            } else {
+                alert('Account deletion cancelled.');
+            }
+        }
+    }
+}
+
+// Form submission feedback
+document.getElementById('profileForm').addEventListener('submit', function() {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    submitBtn.disabled = true;
+    
+    // Re-enable after a delay (form will redirect anyway)
+    setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 3000);
+});
+
+document.getElementById('passwordForm').addEventListener('submit', function() {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Changing...';
+    submitBtn.disabled = true;
+    
+    // Re-enable after a delay
+    setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 3000);
+});
+</script>
+{% endblock %}

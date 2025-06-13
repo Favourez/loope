@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Messages & Alerts - Emergency Response App{% endblock %}
+{% block title %}Community Chat - Emergency Response App{% endblock %}
 
 {% block navbar %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -10,6 +10,9 @@
         </a>
 
         <div class="navbar-nav ms-auto">
+            <span class="navbar-text me-3">
+                <i class="fas fa-user me-1"></i>{{ current_user.full_name }}
+            </span>
             <a class="nav-link" href="{{ url_for('landing') }}">
                 <i class="fas fa-home me-1"></i>Home
             </a>
@@ -19,207 +22,113 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="text-center">
-                <h1 class="display-5 text-primary">
-                    <i class="fas fa-comments me-3"></i>Messages & Alerts
-                </h1>
-                <p class="lead">Emergency notifications and communication center</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Alert Filters -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="btn-group" role="group">
-                <button class="btn btn-outline-primary active" onclick="filterMessages('all')">All Messages</button>
-                <button class="btn btn-outline-danger" onclick="filterMessages('emergency')">Emergency Alerts</button>
-                <button class="btn btn-outline-warning" onclick="filterMessages('weather')">Weather Alerts</button>
-                <button class="btn btn-outline-info" onclick="filterMessages('updates')">System Updates</button>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <button class="btn btn-success w-100" onclick="composeMessage()">
-                <i class="fas fa-plus me-2"></i>New Message
-            </button>
-        </div>
-    </div>
-
-    <!-- Messages List -->
+<div class="container-fluid mt-3">
     <div class="row">
-        <div class="col-lg-8">
-            <div id="messagesList">
-                <!-- Emergency Alert -->
-                <div class="card mb-3 border-danger message-item" data-type="emergency">
-                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>EMERGENCY ALERT</strong>
-                        </div>
-                        <small>5 minutes ago</small>
-                    </div>
-                    <div class="card-body">
-                        <h6>Large Fire Reported in Downtown Area</h6>
-                        <p class="mb-2">Multiple fire units responding to a large structure fire at 456 Oak Street. Residents in the area should evacuate immediately. Avoid the downtown area if possible.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-danger">HIGH PRIORITY</span>
-                            <div>
-                                <button class="btn btn-sm btn-outline-danger me-2">View Details</button>
-                                <button class="btn btn-sm btn-danger">Share Alert</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Weather Alert -->
-                <div class="card mb-3 border-warning message-item" data-type="weather">
-                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-cloud-rain me-2"></i>
-                            <strong>WEATHER ALERT</strong>
-                        </div>
-                        <small>1 hour ago</small>
-                    </div>
-                    <div class="card-body">
-                        <h6>Severe Weather Warning</h6>
-                        <p class="mb-2">High winds and dry conditions expected. Increased fire risk in the region. Outdoor burning is prohibited until further notice.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-warning text-dark">MEDIUM PRIORITY</span>
-                            <div>
-                                <button class="btn btn-sm btn-outline-warning me-2">View Forecast</button>
-                                <button class="btn btn-sm btn-warning">Acknowledge</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- System Update -->
-                <div class="card mb-3 border-info message-item" data-type="updates">
-                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>SYSTEM UPDATE</strong>
-                        </div>
-                        <small>3 hours ago</small>
-                    </div>
-                    <div class="card-body">
-                        <h6>New First Aid Guides Available</h6>
-                        <p class="mb-2">We've added new video tutorials for emergency response procedures. Check out the updated first aid section for the latest guidance.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-info">INFORMATION</span>
-                            <div>
-                                <button class="btn btn-sm btn-outline-info me-2">View Updates</button>
-                                <button class="btn btn-sm btn-info">Mark as Read</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Community Message -->
-                <div class="card mb-3 border-success message-item" data-type="community">
-                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-users me-2"></i>
-                            <strong>COMMUNITY MESSAGE</strong>
-                        </div>
-                        <small>6 hours ago</small>
-                    </div>
-                    <div class="card-body">
-                        <h6>Fire Safety Training Session</h6>
-                        <p class="mb-2">Join us for a free fire safety training session this Saturday at the Community Center. Learn essential fire prevention and response techniques.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-success">COMMUNITY</span>
-                            <div>
-                                <button class="btn btn-sm btn-outline-success me-2">Register</button>
-                                <button class="btn btn-sm btn-success">Interested</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Load More -->
-            <div class="text-center mt-4">
-                <button class="btn btn-outline-primary" onclick="loadMoreMessages()">
-                    <i class="fas fa-chevron-down me-2"></i>Load More Messages
-                </button>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Quick Actions -->
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-danger" onclick="sendEmergencyAlert()">
-                            <i class="fas fa-exclamation-triangle me-2"></i>Send Emergency Alert
-                        </button>
-                        <button class="btn btn-warning" onclick="broadcastMessage()">
-                            <i class="fas fa-broadcast-tower me-2"></i>Broadcast Message
-                        </button>
-                        <button class="btn btn-info" onclick="checkWeatherAlerts()">
-                            <i class="fas fa-cloud me-2"></i>Check Weather
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Message Statistics -->
-            <div class="card mb-3">
-                <div class="card-header bg-secondary text-white">
-                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Message Stats</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6 mb-3">
-                            <h4 class="text-danger">12</h4>
-                            <small>Emergency Alerts</small>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <h4 class="text-warning">8</h4>
-                            <small>Weather Alerts</small>
-                        </div>
-                        <div class="col-6">
-                            <h4 class="text-info">25</h4>
-                            <small>System Updates</small>
-                        </div>
-                        <div class="col-6">
-                            <h4 class="text-success">15</h4>
-                            <small>Community</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Emergency Contacts -->
+        <div class="col-12">
+            <!-- Chat Header -->
             <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h6 class="mb-0"><i class="fas fa-phone me-2"></i>Emergency Contacts</h6>
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            <i class="fas fa-comments me-2"></i>Community Emergency Chat
+                        </h5>
+                        <small>Real-time communication for emergency response community</small>
+                    </div>
+                    <div>
+                        <span class="badge bg-success me-2" id="onlineCount">{{ online_users or 1 }} online</span>
+                        <button class="btn btn-sm btn-light" onclick="refreshChat()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="contact-item mb-2">
-                        <strong>Fire Rescue</strong><br>
-                        <a href="tel:118" class="text-danger">118</a>
+
+                <!-- Chat Messages Area -->
+                <div class="card-body p-0">
+                    <div id="chatMessages" class="chat-messages" style="height: 400px; overflow-y: auto; padding: 15px;">
+                        <!-- Messages will be loaded here -->
+                        {% for message in messages %}
+                        <div class="message-item mb-3" data-message-id="{{ message.id }}">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar bg-{% if message.user_type == 'fire_department' %}danger{% else %}primary{% endif %} text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-{% if message.user_type == 'fire_department' %}fire-extinguisher{% else %}user{% endif %}"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="message-header d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong class="text-{% if message.user_type == 'fire_department' %}danger{% else %}primary{% endif %}">
+                                                {{ message.full_name }}
+                                                {% if message.user_type == 'fire_department' %}
+                                                <span class="badge bg-danger ms-1">Fire Dept</span>
+                                                {% endif %}
+                                            </strong>
+                                            <small class="text-muted ms-2">{{ message.created_at }}</small>
+                                        </div>
+                                        {% if message.user_id == current_user.id %}
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#" onclick="editMessage({{ message.id }})">
+                                                    <i class="fas fa-edit me-2"></i>Edit
+                                                </a></li>
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteMessage({{ message.id }})">
+                                                    <i class="fas fa-trash me-2"></i>Delete
+                                                </a></li>
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="message-content mt-1">
+                                        <p class="mb-1">{{ message.content }}</p>
+                                        {% if message.message_type == 'emergency' %}
+                                        <span class="badge bg-danger">🚨 Emergency</span>
+                                        {% elif message.message_type == 'alert' %}
+                                        <span class="badge bg-warning">⚠️ Alert</span>
+                                        {% elif message.message_type == 'info' %}
+                                        <span class="badge bg-info">ℹ️ Info</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="message-actions mt-2">
+                                        <button class="btn btn-sm btn-outline-primary me-1" onclick="likeMessage({{ message.id }})">
+                                            <i class="fas fa-thumbs-up"></i> <span id="likes-{{ message.id }}">{{ message.likes or 0 }}</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="replyToMessage({{ message.id }})">
+                                            <i class="fas fa-reply"></i> Reply
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-                    <div class="contact-item mb-2">
-                        <strong>Police</strong><br>
-                        <a href="tel:117" class="text-primary">117</a>
-                    </div>
-                    <div class="contact-item mb-2">
-                        <strong>Ambulance</strong><br>
-                        <a href="tel:119" class="text-success">119</a>
-                    </div>
-                    <div class="contact-item">
-                        <strong>Emergency Services</strong><br>
-                        <a href="tel:118" class="text-warning">Fire: 118 | Police: 117 | Ambulance: 119</a>
+                </div>
+
+                <!-- Message Input Area -->
+                <div class="card-footer">
+                    <form id="messageForm" class="d-flex">
+                        <div class="flex-grow-1 me-2">
+                            <div class="input-group">
+                                <select class="form-select" id="messageType" style="max-width: 120px;">
+                                    <option value="general">💬 General</option>
+                                    <option value="info">ℹ️ Info</option>
+                                    <option value="alert">⚠️ Alert</option>
+                                    <option value="emergency">🚨 Emergency</option>
+                                </select>
+                                <input type="text" class="form-control" id="messageInput" placeholder="Type your message..." required maxlength="500">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Messages are visible to all community members. Be respectful and keep discussions emergency-related.
+                        </small>
                     </div>
                 </div>
             </div>
@@ -227,114 +136,301 @@
     </div>
 </div>
 
-<!-- Compose Message Modal -->
-<div class="modal fade" id="composeModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Compose Message</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="composeForm">
-                    <div class="mb-3">
-                        <label for="messageType" class="form-label">Message Type</label>
-                        <select class="form-select" id="messageType">
-                            <option value="emergency">Emergency Alert</option>
-                            <option value="weather">Weather Alert</option>
-                            <option value="updates">System Update</option>
-                            <option value="community">Community Message</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="messageTitle" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="messageTitle" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="messageContent" class="form-label">Message</label>
-                        <textarea class="form-control" id="messageContent" rows="4" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="priority" class="form-label">Priority</label>
-                        <select class="form-select" id="priority">
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="critical">Critical</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="sendMessage()">Send Message</button>
-            </div>
-        </div>
-    </div>
-</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-function filterMessages(type) {
-    const messages = document.querySelectorAll('.message-item');
-    const buttons = document.querySelectorAll('.btn-group .btn');
+// Global variables
+let lastMessageId = 0;
+let isScrolledToBottom = true;
 
-    // Update active button
-    buttons.forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+// Initialize chat when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    scrollToBottom();
+    loadMessages();
 
-    // Filter messages
-    messages.forEach(message => {
-        if (type === 'all' || message.dataset.type === type) {
-            message.style.display = 'block';
-        } else {
-            message.style.display = 'none';
-        }
+    // Auto-scroll detection
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.addEventListener('scroll', function() {
+        isScrolledToBottom = (chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 10);
     });
+});
+
+// Handle message form submission
+document.getElementById('messageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const messageInput = document.getElementById('messageInput');
+    const messageType = document.getElementById('messageType').value;
+    const content = messageInput.value.trim();
+
+    if (!content) return;
+
+    // Send message to server
+    fetch('/send-message', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            content: content,
+            message_type: messageType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageInput.value = '';
+            loadMessages(); // Refresh messages
+        } else {
+            alert('Failed to send message: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        alert('Failed to send message. Please try again.');
+    });
+});
+
+function loadMessages() {
+    fetch('/get-messages')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateMessages(data.messages);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading messages:', error);
+        });
 }
 
-function composeMessage() {
-    const modal = new bootstrap.Modal(document.getElementById('composeModal'));
-    modal.show();
-}
+function updateMessages(messages) {
+    const chatMessages = document.getElementById('chatMessages');
+    const shouldScroll = isScrolledToBottom;
 
-function sendMessage() {
-    const form = document.getElementById('composeForm');
-    const formData = new FormData(form);
+    // Clear existing messages
+    chatMessages.innerHTML = '';
 
-    // Simulate sending message
-    alert('Message sent successfully!');
+    // Add messages
+    messages.forEach(message => {
+        const messageElement = createMessageElement(message);
+        chatMessages.appendChild(messageElement);
+    });
 
-    // Close modal and reset form
-    const modal = bootstrap.Modal.getInstance(document.getElementById('composeModal'));
-    modal.hide();
-    form.reset();
-}
-
-function sendEmergencyAlert() {
-    if (confirm('Are you sure you want to send an emergency alert? This will notify all users in the area.')) {
-        alert('Emergency alert sent to all users in the area!');
+    // Scroll to bottom if user was at bottom
+    if (shouldScroll) {
+        scrollToBottom();
     }
 }
 
-function broadcastMessage() {
-    composeMessage();
+function createMessageElement(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message-item mb-3';
+    messageDiv.setAttribute('data-message-id', message.id);
+
+    const isCurrentUser = message.user_id == {{ current_user.id }};
+    const isFireDept = message.user_type === 'fire_department';
+
+    messageDiv.innerHTML = `
+        <div class="d-flex">
+            <div class="flex-shrink-0">
+                <div class="avatar bg-${isFireDept ? 'danger' : 'primary'} text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="fas fa-${isFireDept ? 'fire-extinguisher' : 'user'}"></i>
+                </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <div class="message-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong class="text-${isFireDept ? 'danger' : 'primary'}">
+                            ${message.full_name}
+                            ${isFireDept ? '<span class="badge bg-danger ms-1">Fire Dept</span>' : ''}
+                        </strong>
+                        <small class="text-muted ms-2">${formatTime(message.created_at)}</small>
+                    </div>
+                    ${isCurrentUser ? `
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteMessage(${message.id})">
+                                <i class="fas fa-trash me-2"></i>Delete
+                            </a></li>
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="message-content mt-1">
+                    <p class="mb-1">${escapeHtml(message.content)}</p>
+                    ${getMessageTypeBadge(message.message_type)}
+                </div>
+                <div class="message-actions mt-2">
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="likeMessage(${message.id})">
+                        <i class="fas fa-thumbs-up"></i> <span id="likes-${message.id}">${message.likes || 0}</span>
+                    </button>
+                    <small class="text-muted">${formatTime(message.created_at)}</small>
+                </div>
+            </div>
+        </div>
+    `;
+
+    return messageDiv;
 }
 
-function checkWeatherAlerts() {
-    alert('Checking latest weather alerts...\n\nCurrent conditions: Clear skies, low wind\nNo active weather warnings');
+function getMessageTypeBadge(type) {
+    switch(type) {
+        case 'emergency':
+            return '<span class="badge bg-danger">🚨 Emergency</span>';
+        case 'alert':
+            return '<span class="badge bg-warning">⚠️ Alert</span>';
+        case 'info':
+            return '<span class="badge bg-info">ℹ️ Info</span>';
+        default:
+            return '';
+    }
 }
 
-function loadMoreMessages() {
-    alert('Loading more messages...');
-    // In real implementation, this would load more messages from the server
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return date.toLocaleDateString();
 }
 
-// Auto-refresh messages every 30 seconds
-setInterval(() => {
-    console.log('Checking for new messages...');
-    // In real implementation, this would check for new messages
-}, 30000);
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function refreshChat() {
+    loadMessages();
+}
+
+function deleteMessage(messageId) {
+    if (confirm('Are you sure you want to delete this message?')) {
+        fetch('/delete-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message_id: messageId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadMessages(); // Refresh messages
+            } else {
+                alert('Failed to delete message: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting message:', error);
+            alert('Failed to delete message. Please try again.');
+        });
+    }
+}
+
+function likeMessage(messageId) {
+    fetch('/like-message', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message_id: messageId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`likes-${messageId}`).textContent = data.likes;
+        }
+    })
+    .catch(error => {
+        console.error('Error liking message:', error);
+    });
+}
+
+// Auto-refresh messages every 10 seconds
+setInterval(loadMessages, 10000);
+
+// Handle Enter key in message input
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('messageForm').dispatchEvent(new Event('submit'));
+    }
+});
 </script>
+
+<style>
+.chat-messages {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+}
+
+.message-item {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.avatar {
+    font-size: 0.9rem;
+}
+
+.message-content p {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.message-actions button {
+    font-size: 0.8rem;
+}
+
+.dropdown-menu {
+    font-size: 0.9rem;
+}
+
+/* Scrollbar styling */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
 {% endblock %}
