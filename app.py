@@ -363,6 +363,10 @@ def test_map():
     with open('test_map.html', 'r') as f:
         return f.read()
 
+@app.route('/test-location')
+def test_location():
+    return render_template('location_test.html')
+
 @app.route('/messages')
 @login_required
 def messages():

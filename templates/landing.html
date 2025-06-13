@@ -85,7 +85,7 @@
                             <label for="location" class="form-label">Location Description</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="location" placeholder="Describe the emergency location" required>
-                                <button type="button" class="btn btn-outline-primary" id="detectLocationBtn" onclick="detectCurrentLocation()">
+                                <button type="button" class="btn btn-outline-primary" id="detectLocationBtn">
                                     <i class="fas fa-crosshairs me-1"></i>Detect
                                 </button>
                             </div>
@@ -199,260 +199,192 @@
 
 {% block extra_scripts %}
 <script>
-// Global variables for location
+// Simple global variable for location
 let userLocation = null;
-let locationWatchId = null;
 
-// Initialize location detection when page loads
+// Wait for page to load completely
 document.addEventListener('DOMContentLoaded', function() {
-    initializeLocationDetection();
+    console.log('Page loaded - setting up location detection');
+
+    // Get the detect button and add click event
+    const detectBtn = document.getElementById('detectLocationBtn');
+    if (detectBtn) {
+        detectBtn.addEventListener('click', function() {
+            console.log('Detect button clicked!');
+            getMyLocation();
+        });
+        console.log('Location detect button ready');
+    } else {
+        console.error('Detect button not found!');
+    }
+
+    // Try to get location automatically when page loads
+    setTimeout(function() {
+        console.log('Attempting automatic location detection...');
+        getMyLocation(true); // true = silent mode for auto-detection
+    }, 1000);
 });
 
-function initializeLocationDetection() {
-    if (navigator.geolocation) {
-        const locationStatus = document.getElementById('locationStatus');
-        const locationText = document.getElementById('locationText');
+// Simple function to get user's location
+function getMyLocation(silent = false) {
+    console.log('Getting location... silent mode:', silent);
 
-        locationStatus.style.display = 'block';
-        locationText.textContent = 'Getting your location...';
-
-        // Get current position with high accuracy
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                userLocation = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    timestamp: new Date().toISOString()
-                };
-
-                // Automatically fill the location field with reverse geocoded address
-                reverseGeocode(position.coords.latitude, position.coords.longitude)
-                    .then(address => {
-                        const locationInput = document.getElementById('location');
-                        if (locationInput && address) {
-                            locationInput.value = address;
-                            locationInput.placeholder = 'Location detected automatically';
-                        }
-                    })
-                    .catch(() => {
-                        // Fallback to coordinates if reverse geocoding fails
-                        const locationInput = document.getElementById('location');
-                        if (locationInput) {
-                            locationInput.value = `GPS: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
-                        }
-                    });
-
-                locationStatus.className = 'alert alert-success';
-                locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>Location detected automatically (±${Math.round(position.coords.accuracy)}m accuracy)`;
-
-                console.log('User location obtained:', userLocation);
-            },
-            function(error) {
-                console.warn('Location error:', error.message);
-                locationStatus.className = 'alert alert-warning';
-
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Location access denied. Click "Detect" to try again or enter location manually.';
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Location unavailable. Click "Detect" to try again or enter location manually.';
-                        break;
-                    case error.TIMEOUT:
-                        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Location timeout. Click "Detect" to try again or enter location manually.';
-                        break;
-                    default:
-                        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Location error. Click "Detect" to try again or enter location manually.';
-                        break;
-                }
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 60000 // 1 minute
-            }
-        );
-    } else {
-        const locationStatus = document.getElementById('locationStatus');
-        const locationText = document.getElementById('locationText');
-
-        locationStatus.style.display = 'block';
-        locationStatus.className = 'alert alert-warning';
-        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Geolocation not supported. Please enter location manually.';
-    }
-}
-
-function detectCurrentLocation() {
-    const btn = document.getElementById('detectLocationBtn');
-    const originalText = btn.innerHTML;
+    // Get page elements
     const locationInput = document.getElementById('location');
     const locationStatus = document.getElementById('locationStatus');
     const locationText = document.getElementById('locationText');
+    const detectBtn = document.getElementById('detectLocationBtn');
 
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Detecting...';
-    btn.disabled = true;
+    if (!locationInput) {
+        console.error('Location input not found!');
+        if (!silent) alert('Error: Location input not found!');
+        return;
+    }
 
-    // Show status
-    locationStatus.style.display = 'block';
-    locationStatus.className = 'alert alert-info';
-    locationText.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Detecting your current location...';
+    // Check if geolocation is supported
+    if (!navigator.geolocation) {
+        console.error('Geolocation not supported');
+        if (!silent) alert('Geolocation is not supported by this browser');
+        return;
+    }
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                userLocation = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    timestamp: new Date().toISOString()
-                };
+    // Update UI if not silent
+    if (!silent && detectBtn) {
+        detectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Getting...';
+        detectBtn.disabled = true;
+    }
 
-                console.log('Location detected:', userLocation);
+    if (locationStatus && locationText) {
+        locationStatus.style.display = 'block';
+        locationStatus.className = 'alert alert-info';
+        locationText.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Getting your location...';
+    }
 
-                // Use reverse geocoding to get a readable address
-                reverseGeocode(position.coords.latitude, position.coords.longitude)
-                    .then(address => {
-                        if (address) {
-                            locationInput.value = address;
-                            locationStatus.className = 'alert alert-success';
-                            locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>Location detected: ${address} (±${Math.round(position.coords.accuracy)}m accuracy)`;
-                        } else {
-                            // Fallback to coordinates
-                            locationInput.value = `GPS: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
-                            locationStatus.className = 'alert alert-success';
-                            locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>GPS coordinates detected (±${Math.round(position.coords.accuracy)}m accuracy)`;
-                        }
-                    })
-                    .catch(() => {
-                        // Fallback to coordinates if reverse geocoding fails
-                        locationInput.value = `GPS: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
-                        locationStatus.className = 'alert alert-success';
-                        locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>GPS coordinates detected (±${Math.round(position.coords.accuracy)}m accuracy)`;
-                    });
+    // Get current position
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            console.log('SUCCESS! Got location:', position);
 
-                btn.innerHTML = '<i class="fas fa-check me-1"></i>Detected';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = Math.round(position.coords.accuracy);
+
+            // Store location data
+            userLocation = {
+                latitude: lat,
+                longitude: lng,
+                accuracy: accuracy,
+                timestamp: new Date().toISOString()
+            };
+
+            // Put coordinates in the input field RIGHT NOW
+            const coordsText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            locationInput.value = coordsText;
+            console.log('Location input filled with:', coordsText);
+
+            // Update status
+            if (locationStatus && locationText) {
+                locationStatus.className = 'alert alert-success';
+                locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>Location detected! (±${accuracy}m accuracy)`;
+            }
+
+            // Reset button
+            if (!silent && detectBtn) {
+                detectBtn.innerHTML = '<i class="fas fa-check me-1"></i>Got it!';
+                setTimeout(function() {
+                    detectBtn.innerHTML = '<i class="fas fa-crosshairs me-1"></i>Detect';
+                    detectBtn.disabled = false;
                 }, 2000);
-            },
-            function(error) {
-                console.warn('Location detection error:', error.message);
-
-                locationStatus.className = 'alert alert-danger';
-                let errorMessage = '';
-
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        errorMessage = 'Location access denied. Please allow location access in your browser settings and try again.';
-                        locationText.innerHTML = '<i class="fas fa-times-circle me-2"></i>Location access denied. Please allow location access and try again.';
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        errorMessage = 'Location information is unavailable. Please check your GPS/location services.';
-                        locationText.innerHTML = '<i class="fas fa-times-circle me-2"></i>Location unavailable. Please check your GPS settings.';
-                        break;
-                    case error.TIMEOUT:
-                        errorMessage = 'Location request timed out. Please try again or enter location manually.';
-                        locationText.innerHTML = '<i class="fas fa-times-circle me-2"></i>Location timeout. Please try again.';
-                        break;
-                    default:
-                        errorMessage = 'Could not detect location. Please enter the location manually.';
-                        locationText.innerHTML = '<i class="fas fa-times-circle me-2"></i>Location detection failed. Please enter manually.';
-                        break;
-                }
-
-                // Show error message
-                setTimeout(() => {
-                    alert(errorMessage);
-                }, 500);
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 30000
             }
-        );
-    } else {
-        locationStatus.className = 'alert alert-warning';
-        locationText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Geolocation not supported by this browser.';
-        alert('Geolocation is not supported by this browser. Please enter the location manually.');
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-}
 
-// Reverse geocoding function to get readable address
-async function reverseGeocode(lat, lng) {
-    try {
-        console.log(`Attempting reverse geocoding for: ${lat}, ${lng}`);
-
-        // Try multiple geocoding services for better reliability
-        const services = [
-            {
-                name: 'BigDataCloud',
-                url: `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
-                parser: (data) => {
-                    if (data && data.locality) {
-                        return `${data.locality}, ${data.principalSubdivision || data.countryName}`;
-                    } else if (data && data.city) {
-                        return `${data.city}, ${data.principalSubdivision || data.countryName}`;
-                    } else if (data && data.countryName) {
-                        return `${data.countryName}`;
-                    }
-                    return null;
-                }
-            },
-            {
-                name: 'Nominatim',
-                url: `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-                parser: (data) => {
-                    if (data && data.display_name) {
-                        // Extract meaningful parts from display_name
-                        const parts = data.display_name.split(',');
-                        if (parts.length >= 2) {
-                            return `${parts[0].trim()}, ${parts[1].trim()}`;
-                        }
-                        return parts[0].trim();
-                    }
-                    return null;
-                }
-            }
-        ];
-
-        // Try each service
-        for (const service of services) {
-            try {
-                console.log(`Trying ${service.name}...`);
-                const response = await fetch(service.url);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const address = service.parser(data);
-
+            // Try to get a readable address (optional)
+            getAddress(lat, lng)
+                .then(function(address) {
                     if (address) {
-                        console.log(`${service.name} success:`, address);
-                        return address;
+                        console.log('Got readable address:', address);
+                        locationInput.value = address;
+                        if (locationText) {
+                            locationText.innerHTML = `<i class="fas fa-check-circle me-2"></i>Location: ${address}`;
+                        }
                     }
-                }
-            } catch (serviceError) {
-                console.warn(`${service.name} failed:`, serviceError);
-                continue;
+                })
+                .catch(function(error) {
+                    console.log('Address lookup failed, keeping coordinates');
+                });
+        },
+        function(error) {
+            console.error('Geolocation error:', error);
+
+            let message = 'Could not get your location';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Location access denied. Please allow location access.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Location unavailable. Check your GPS settings.';
+                    break;
+                case error.TIMEOUT:
+                    message = 'Location request timed out. Try again.';
+                    break;
             }
+
+            console.error('Error message:', message);
+
+            if (!silent) {
+                alert(message);
+            }
+
+            if (locationStatus && locationText) {
+                locationStatus.className = 'alert alert-danger';
+                locationText.innerHTML = `<i class="fas fa-times-circle me-2"></i>${message}`;
+            }
+
+            // Reset button
+            if (!silent && detectBtn) {
+                detectBtn.innerHTML = '<i class="fas fa-crosshairs me-1"></i>Detect';
+                detectBtn.disabled = false;
+            }
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
         }
-
-        console.warn('All reverse geocoding services failed');
-        return null;
-
-    } catch (error) {
-        console.warn('Reverse geocoding error:', error);
-        return null;
-    }
+    );
 }
 
+// Simple function to get readable address
+function getAddress(lat, lng) {
+    return new Promise(function(resolve, reject) {
+        console.log('Looking up address for:', lat, lng);
+
+        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+            .then(function(response) {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Address lookup failed');
+                }
+            })
+            .then(function(data) {
+                console.log('Address data:', data);
+
+                if (data && data.locality) {
+                    resolve(`${data.locality}, ${data.principalSubdivision || data.countryName}`);
+                } else if (data && data.city) {
+                    resolve(`${data.city}, ${data.principalSubdivision || data.countryName}`);
+                } else {
+                    reject(new Error('No address found'));
+                }
+            })
+            .catch(function(error) {
+                console.log('Address lookup error:', error);
+                reject(error);
+            });
+    });
+}
+
+// Handle emergency form submission
 document.getElementById('emergencyForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
