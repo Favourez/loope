@@ -1,0 +1,4 @@
+---
+# Master playbook for Emergency Response App Infrastructure
+- import_playbook: playbook-install-packages.yml
+- import_playbook: playbook-deploy-services.yml

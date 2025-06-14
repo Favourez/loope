@@ -1,0 +1,172 @@
+---
+- name: Deploy and Start Emergency Response App Services
+  hosts: web_servers
+  become: yes
+  vars:
+    app_repo: "https://github.com/emergency-response/app.git"
+    docker_compose_version: "2.20.0"
+
+  tasks:
+    - name: Install Docker dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add application user to docker group
+      user:
+        name: "{{ app_user }}"
+        groups: docker
+        append: yes
+
+    - name: Install Docker Compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Create monitoring directory
+      file:
+        path: "{{ app_directory }}/monitoring"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Copy monitoring configuration files
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ app_directory }}/{{ item.dest }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0644'
+      loop:
+        - { src: "../docker-compose.monitoring.yml", dest: "docker-compose.monitoring.yml" }
+        - { src: "../monitoring/", dest: "monitoring/" }
+
+    - name: Copy application files
+      copy:
+        src: "{{ item }}"
+        dest: "{{ app_directory }}/"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0644'
+      loop:
+        - "../app.py"
+        - "../database.py"
+        - "../auth.py"
+        - "../api_endpoints.py"
+        - "../templates/"
+        - "../static/"
+
+    - name: Create application configuration file
+      template:
+        src: app-config.py.j2
+        dest: "{{ app_directory }}/config.py"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0644'
+
+    - name: Start monitoring services with Docker Compose
+      shell: |
+        cd {{ app_directory }}
+        docker-compose -f docker-compose.monitoring.yml up -d
+      become_user: "{{ app_user }}"
+
+    - name: Start emergency app service
+      systemd:
+        name: emergency-app
+        state: started
+        enabled: yes
+
+    - name: Wait for application to start
+      wait_for:
+        port: "{{ app_port }}"
+        host: localhost
+        delay: 10
+        timeout: 60
+
+    - name: Test application health
+      uri:
+        url: "http://localhost:{{ app_port }}/api/v1/health"
+        method: GET
+        status_code: 200
+      register: health_check
+      retries: 3
+      delay: 5
+
+    - name: Display health check result
+      debug:
+        msg: "Application health check: {{ health_check.json }}"
+
+    - name: Test Prometheus metrics
+      uri:
+        url: "http://localhost:{{ app_port }}/metrics"
+        method: GET
+        status_code: 200
+      register: metrics_check
+
+    - name: Display metrics availability
+      debug:
+        msg: "Prometheus metrics are available"
+      when: metrics_check.status == 200
+
+    - name: Create backup script
+      template:
+        src: backup-script.sh.j2
+        dest: "{{ app_directory }}/backup.sh"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Schedule daily backup
+      cron:
+        name: "Emergency app backup"
+        minute: "0"
+        hour: "2"
+        job: "{{ app_directory }}/backup.sh"
+        user: "{{ app_user }}"
+
+    - name: Create log rotation configuration
+      template:
+        src: emergency-app-logrotate.j2
+        dest: /etc/logrotate.d/emergency-app
+        mode: '0644'
+
+  handlers:
+    - name: restart emergency-app
+      systemd:
+        name: emergency-app
+        state: restarted

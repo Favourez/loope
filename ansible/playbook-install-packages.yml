@@ -1,0 +1,145 @@
+---
+- name: Install and Configure Emergency Response App Dependencies
+  hosts: web_servers
+  become: yes
+  vars:
+    packages_to_install:
+      - python3
+      - python3-pip
+      - python3-venv
+      - git
+      - nginx
+      - sqlite3
+      - curl
+      - wget
+      - unzip
+      - htop
+      - vim
+      - ufw
+    
+    python_packages:
+      - flask
+      - flask-login
+      - prometheus-client
+      - prometheus-flask-exporter
+      - requests
+      - bcrypt
+      - email-validator
+
+  tasks:
+    - name: Update package cache (Ubuntu/Debian)
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Update package cache (CentOS/RHEL)
+      yum:
+        update_cache: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Install system packages (Ubuntu/Debian)
+      apt:
+        name: "{{ packages_to_install }}"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install system packages (CentOS/RHEL)
+      yum:
+        name: "{{ packages_to_install }}"
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Create application user
+      user:
+        name: "{{ app_user }}"
+        system: yes
+        shell: /bin/bash
+        home: "{{ app_directory }}"
+        create_home: yes
+
+    - name: Create application directory
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Create Python virtual environment
+      command: python3 -m venv "{{ app_directory }}/venv"
+      args:
+        creates: "{{ app_directory }}/venv"
+      become_user: "{{ app_user }}"
+
+    - name: Install Python packages in virtual environment
+      pip:
+        name: "{{ python_packages }}"
+        virtualenv: "{{ app_directory }}/venv"
+        state: present
+      become_user: "{{ app_user }}"
+
+    - name: Configure UFW firewall
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - "{{ app_port }}"
+        - "22"
+        - "80"
+        - "443"
+
+    - name: Enable UFW firewall
+      ufw:
+        state: enabled
+
+    - name: Create log directory
+      file:
+        path: /var/log/emergency-app
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Create systemd service file
+      template:
+        src: emergency-app.service.j2
+        dest: /etc/systemd/system/emergency-app.service
+        mode: '0644'
+      notify: reload systemd
+
+    - name: Create nginx configuration
+      template:
+        src: nginx-emergency-app.conf.j2
+        dest: /etc/nginx/sites-available/emergency-app
+        mode: '0644'
+      notify: restart nginx
+
+    - name: Enable nginx site
+      file:
+        src: /etc/nginx/sites-available/emergency-app
+        dest: /etc/nginx/sites-enabled/emergency-app
+        state: link
+      notify: restart nginx
+
+    - name: Remove default nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+
+    - name: Test nginx configuration
+      command: nginx -t
+      register: nginx_test
+      failed_when: nginx_test.rc != 0
+
+  handlers:
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted

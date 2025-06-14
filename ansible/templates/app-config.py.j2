@@ -1,0 +1,44 @@
+# Emergency Response App Configuration
+import os
+
+# Flask Configuration
+SECRET_KEY = '{{ ansible_hostname }}-emergency-secret-key-{{ ansible_date_time.epoch }}'
+DEBUG = False
+TESTING = False
+
+# Database Configuration
+DATABASE_PATH = '{{ app_directory }}/emergency_app.db'
+
+# API Configuration
+API_KEY = 'emergency-api-key-2024'
+
+# Email Configuration
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USER = 'emergency@{{ ansible_domain | default("localhost") }}'
+EMAIL_PASSWORD = 'your-app-password'
+EMAIL_FROM = 'Emergency Response App <emergency@{{ ansible_domain | default("localhost") }}>'
+
+# Monitoring Configuration
+PROMETHEUS_METRICS = True
+METRICS_PORT = {{ app_port }}
+
+# Security Configuration
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Application Configuration
+APP_NAME = '{{ app_name }}'
+APP_VERSION = '1.0.0'
+APP_HOST = '0.0.0.0'
+APP_PORT = {{ app_port }}
+
+# Logging Configuration
+LOG_LEVEL = 'INFO'
+LOG_FILE = '/var/log/emergency-app/app.log'
+
+# Feature Flags
+ENABLE_REGISTRATION = True
+ENABLE_EMAIL_NOTIFICATIONS = True
+ENABLE_SMS_NOTIFICATIONS = False

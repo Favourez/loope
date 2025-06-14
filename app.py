@@ -54,6 +54,7 @@ def send_email_notification(to_email, subject, message, html_message=None):
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
+app.config['API_KEY'] = 'emergency-api-key-2024'
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -61,6 +62,10 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
+
+# Register API Blueprint
+from api_endpoints import api
+app.register_blueprint(api)
 
 @login_manager.user_loader
 def load_user_callback(user_id):
@@ -209,6 +214,9 @@ FIRST_AID_PRACTICES = [
         'keywords': ['poisoning', 'toxic', 'ingestion', 'chemicals', 'antidote']
     }
 ]
+
+# Store first aid practices in app config for API access
+app.config['FIRST_AID_PRACTICES'] = FIRST_AID_PRACTICES
 
 @app.route('/')
 def welcome():

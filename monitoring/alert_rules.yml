@@ -1,0 +1,47 @@
+groups:
+  - name: emergency_app_alerts
+    rules:
+      - alert: HighEmergencyReports
+        expr: increase(emergency_reports_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of emergency reports"
+          description: "More than 5 emergency reports in the last 5 minutes"
+
+      - alert: SystemHealthLow
+        expr: system_health_score < 50
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "System health is critically low"
+          description: "System health score is {{ $value }}, below 50"
+
+      - alert: AppDown
+        expr: up{job="emergency-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Emergency Response App is down"
+          description: "The Emergency Response App has been down for more than 1 minute"
+
+      - alert: HighResponseTime
+        expr: flask_http_request_duration_seconds{quantile="0.95"} > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s"
+
+      - alert: TooManyActiveUsers
+        expr: active_users > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of active users"
+          description: "{{ $value }} active users detected"

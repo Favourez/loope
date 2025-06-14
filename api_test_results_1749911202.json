@@ -1,0 +1,164 @@
+[
+  {
+    "name": "Health Check",
+    "method": "GET",
+    "endpoint": "/health",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:41.953805"
+  },
+  {
+    "name": "System Status",
+    "method": "GET",
+    "endpoint": "/status",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:41.960416"
+  },
+  {
+    "name": "User Login",
+    "method": "POST",
+    "endpoint": "/auth/login",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.191925"
+  },
+  {
+    "name": "User Registration",
+    "method": "POST",
+    "endpoint": "/auth/register",
+    "status_code": 400,
+    "expected_status": 201,
+    "result": "FAIL",
+    "timestamp": "2025-06-14T15:26:42.434914"
+  },
+  {
+    "name": "Get All Emergencies",
+    "method": "GET",
+    "endpoint": "/emergencies",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.434914"
+  },
+  {
+    "name": "Get Filtered Emergencies",
+    "method": "GET",
+    "endpoint": "/emergencies?status=pending&limit=5",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.446354"
+  },
+  {
+    "name": "Create Emergency Report",
+    "method": "POST",
+    "endpoint": "/emergencies",
+    "status_code": 201,
+    "expected_status": 201,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.448132"
+  },
+  {
+    "name": "Get Specific Emergency",
+    "method": "GET",
+    "endpoint": "/emergencies/5",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.465497"
+  },
+  {
+    "name": "Update Emergency Status",
+    "method": "PUT",
+    "endpoint": "/emergencies/5/status",
+    "status_code": 500,
+    "expected_status": 200,
+    "result": "FAIL",
+    "timestamp": "2025-06-14T15:26:42.465497"
+  },
+  {
+    "name": "Get Fire Departments",
+    "method": "GET",
+    "endpoint": "/fire-departments",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.478660"
+  },
+  {
+    "name": "Get Community Messages",
+    "method": "GET",
+    "endpoint": "/messages",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.484369"
+  },
+  {
+    "name": "Create Community Message",
+    "method": "POST",
+    "endpoint": "/messages",
+    "status_code": 201,
+    "expected_status": 201,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.497686"
+  },
+  {
+    "name": "Get First Aid Practices",
+    "method": "GET",
+    "endpoint": "/first-aid",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.501701"
+  },
+  {
+    "name": "Get Filtered First Aid",
+    "method": "GET",
+    "endpoint": "/first-aid?category=Cardiac Emergency&difficulty=Intermediate",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.505333"
+  },
+  {
+    "name": "Get Specific First Aid Practice",
+    "method": "GET",
+    "endpoint": "/first-aid/1",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.509802"
+  },
+  {
+    "name": "Invalid API Key Test",
+    "method": "GET",
+    "endpoint": "/emergencies",
+    "status_code": 401,
+    "expected_status": 401,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.515781"
+  },
+  {
+    "name": "Missing API Key Test",
+    "method": "GET",
+    "endpoint": "/emergencies",
+    "status_code": 401,
+    "expected_status": 401,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.519721"
+  },
+  {
+    "name": "Invalid Endpoint Test",
+    "method": "GET",
+    "endpoint": "/nonexistent",
+    "status_code": 404,
+    "expected_status": 404,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:26:42.523350"
+  }
+]

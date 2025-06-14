@@ -1,0 +1,12 @@
+/var/log/emergency-app/*.log {
+    daily
+    missingok
+    rotate 52
+    compress
+    delaycompress
+    notifempty
+    create 644 {{ app_user }} {{ app_user }}
+    postrotate
+        systemctl reload emergency-app
+    endscript
+}

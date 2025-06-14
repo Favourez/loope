@@ -1,0 +1,146 @@
+[
+  {
+    "name": "Health Check",
+    "method": "GET",
+    "endpoint": "/health",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:07.456665"
+  },
+  {
+    "name": "System Status",
+    "method": "GET",
+    "endpoint": "/status",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:07.463652"
+  },
+  {
+    "name": "User Login",
+    "method": "POST",
+    "endpoint": "/auth/login",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:07.698279"
+  },
+  {
+    "name": "User Registration",
+    "method": "POST",
+    "endpoint": "/auth/register",
+    "status_code": 400,
+    "expected_status": 201,
+    "result": "FAIL",
+    "timestamp": "2025-06-14T15:23:07.945646"
+  },
+  {
+    "name": "Get All Emergencies",
+    "method": "GET",
+    "endpoint": "/emergencies",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:07.951249"
+  },
+  {
+    "name": "Get Filtered Emergencies",
+    "method": "GET",
+    "endpoint": "/emergencies?status=pending&limit=5",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:07.954692"
+  },
+  {
+    "name": "Create Emergency Report",
+    "method": "POST",
+    "endpoint": "/emergencies",
+    "status_code": 500,
+    "expected_status": 201,
+    "result": "FAIL",
+    "timestamp": "2025-06-14T15:23:07.958870"
+  },
+  {
+    "name": "Get Fire Departments",
+    "method": "GET",
+    "endpoint": "/fire-departments",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:07.964202"
+  },
+  {
+    "name": "Get Community Messages",
+    "method": "GET",
+    "endpoint": "/messages",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:07.969234"
+  },
+  {
+    "name": "Create Community Message",
+    "method": "POST",
+    "endpoint": "/messages",
+    "status_code": 201,
+    "expected_status": 201,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:08.034437"
+  },
+  {
+    "name": "Get First Aid Practices",
+    "method": "GET",
+    "endpoint": "/first-aid",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:08.049914"
+  },
+  {
+    "name": "Get Filtered First Aid",
+    "method": "GET",
+    "endpoint": "/first-aid?category=Cardiac Emergency&difficulty=Intermediate",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:08.058092"
+  },
+  {
+    "name": "Get Specific First Aid Practice",
+    "method": "GET",
+    "endpoint": "/first-aid/1",
+    "status_code": 200,
+    "expected_status": 200,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:08.063212"
+  },
+  {
+    "name": "Invalid API Key Test",
+    "method": "GET",
+    "endpoint": "/emergencies",
+    "status_code": 401,
+    "expected_status": 401,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:08.068666"
+  },
+  {
+    "name": "Missing API Key Test",
+    "method": "GET",
+    "endpoint": "/emergencies",
+    "status_code": 401,
+    "expected_status": 401,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:08.072984"
+  },
+  {
+    "name": "Invalid Endpoint Test",
+    "method": "GET",
+    "endpoint": "/nonexistent",
+    "status_code": 404,
+    "expected_status": 404,
+    "result": "PASS",
+    "timestamp": "2025-06-14T15:23:08.075384"
+  }
+]

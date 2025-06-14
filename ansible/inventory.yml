@@ -1,0 +1,24 @@
+all:
+  hosts:
+    emergency-app-server:
+      ansible_host: localhost
+      ansible_connection: local
+      ansible_python_interpreter: python3
+  
+  children:
+    web_servers:
+      hosts:
+        emergency-app-server:
+      vars:
+        app_name: emergency-response-app
+        app_port: 3000
+        app_user: emergency
+        app_directory: /opt/emergency-app
+        
+    monitoring_servers:
+      hosts:
+        emergency-app-server:
+      vars:
+        prometheus_port: 9090
+        grafana_port: 3001
+        alertmanager_port: 9093

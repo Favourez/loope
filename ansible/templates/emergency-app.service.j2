@@ -1,0 +1,20 @@
+[Unit]
+Description=Emergency Response App
+After=network.target
+
+[Service]
+Type=simple
+User={{ app_user }}
+Group={{ app_user }}
+WorkingDirectory={{ app_directory }}
+Environment=PATH={{ app_directory }}/venv/bin
+ExecStart={{ app_directory }}/venv/bin/python app.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=emergency-app
+
+[Install]
+WantedBy=multi-user.target

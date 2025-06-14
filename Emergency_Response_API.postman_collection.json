@@ -1,0 +1,365 @@
+{
+  "info": {
+    "name": "Emergency Response API",
+    "description": "Comprehensive API collection for Emergency Response App",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:3000/api/v1"
+    },
+    {
+      "key": "api_key",
+      "value": "emergency-api-key-2024"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"new@test.com\",\n  \"password\": \"password123\",\n  \"full_name\": \"New User\",\n  \"phone\": \"+237123456789\",\n  \"user_type\": \"regular\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Emergency Reports",
+      "item": [
+        {
+          "name": "Get All Emergencies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/emergencies",
+              "host": ["{{base_url}}"],
+              "path": ["emergencies"]
+            }
+          }
+        },
+        {
+          "name": "Get Filtered Emergencies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/emergencies?status=pending&severity=high&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["emergencies"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "severity",
+                  "value": "high"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Emergency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emergency_type\": \"fire\",\n  \"location\": \"Downtown Yaoundé\",\n  \"description\": \"Building fire on main street\",\n  \"severity\": \"high\",\n  \"latitude\": 3.8634,\n  \"longitude\": 11.5167,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/emergencies",
+              "host": ["{{base_url}}"],
+              "path": ["emergencies"]
+            }
+          }
+        },
+        {
+          "name": "Get Emergency by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/emergencies/1",
+              "host": ["{{base_url}}"],
+              "path": ["emergencies", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Emergency Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/emergencies/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["emergencies", "1", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fire Departments",
+      "item": [
+        {
+          "name": "Get All Fire Departments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/fire-departments",
+              "host": ["{{base_url}}"],
+              "path": ["fire-departments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Get Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages?limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["messages"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Emergency update: Road blocked on Avenue Kennedy\",\n  \"message_type\": \"alert\",\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["messages"]
+            }
+          }
+        },
+        {
+          "name": "Delete Message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/1?user_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "1"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "First Aid",
+      "item": [
+        {
+          "name": "Get All First Aid Practices",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/first-aid",
+              "host": ["{{base_url}}"],
+              "path": ["first-aid"]
+            }
+          }
+        },
+        {
+          "name": "Get Filtered First Aid",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/first-aid?category=Cardiac Emergency&difficulty=Intermediate",
+              "host": ["{{base_url}}"],
+              "path": ["first-aid"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Cardiac Emergency"
+                },
+                {
+                  "key": "difficulty",
+                  "value": "Intermediate"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get First Aid by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/first-aid/1",
+              "host": ["{{base_url}}"],
+              "path": ["first-aid", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "System Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["status"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
