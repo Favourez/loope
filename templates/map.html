@@ -478,60 +478,583 @@ const emergencyData = [
     }
 ];
 
-// Sample hospital data for Cameroon
+// Comprehensive hospital data for Cameroon
 const hospitalData = [
+    // Yaoundé Hospitals
     {
-        name: 'Yaoundé Central Hospital',
-        coordinates: [3.8634, 11.5167], // [lat, lng] for Leaflet
-        type: 'General Hospital',
+        id: 'h001',
+        name: 'Yaoundé Central Hospital (Hôpital Central)',
+        coordinates: [3.8634, 11.5167],
+        type: 'Public General Hospital',
         emergency: true,
-        phone: '119'
+        phone: '+237222234567',
+        services: ['Emergency', 'Surgery', 'ICU', 'Cardiology', 'Pediatrics'],
+        capacity: 500,
+        rating: 4.2,
+        city: 'Yaoundé',
+        region: 'Centre'
     },
     {
-        name: 'Douala General Hospital',
-        coordinates: [4.0435, 9.7043], // [lat, lng] for Leaflet
-        type: 'General Hospital',
+        id: 'h002',
+        name: 'Yaoundé University Teaching Hospital (CHU)',
+        coordinates: [3.8480, 11.5021],
+        type: 'Public Teaching Hospital',
         emergency: true,
-        phone: '119'
+        phone: '+237222234568',
+        services: ['Emergency', 'Surgery', 'ICU', 'Oncology', 'Neurology'],
+        capacity: 800,
+        rating: 4.5,
+        city: 'Yaoundé',
+        region: 'Centre'
     },
     {
+        id: 'h003',
+        name: 'Yaoundé Gyneco-Obstetric Hospital',
+        coordinates: [3.8691, 11.5174],
+        type: 'Specialized Hospital',
+        emergency: true,
+        phone: '+237222234569',
+        services: ['Emergency', 'Maternity', 'Gynecology', 'Pediatrics'],
+        capacity: 300,
+        rating: 4.0,
+        city: 'Yaoundé',
+        region: 'Centre'
+    },
+    {
+        id: 'h004',
+        name: 'Clinique Pasteur Yaoundé',
+        coordinates: [3.8580, 11.5120],
+        type: 'Private Clinic',
+        emergency: true,
+        phone: '+237222234570',
+        services: ['Emergency', 'Surgery', 'Cardiology', 'Dermatology'],
+        capacity: 150,
+        rating: 4.3,
+        city: 'Yaoundé',
+        region: 'Centre'
+    },
+    {
+        id: 'h005',
+        name: 'Polyclinique Bonanjo',
+        coordinates: [3.8720, 11.5200],
+        type: 'Private Polyclinic',
+        emergency: true,
+        phone: '+237222234571',
+        services: ['Emergency', 'General Medicine', 'Laboratory'],
+        capacity: 80,
+        rating: 3.8,
+        city: 'Yaoundé',
+        region: 'Centre'
+    },
+
+    // Douala Hospitals
+    {
+        id: 'h006',
+        name: 'Douala General Hospital (Hôpital Général)',
+        coordinates: [4.0435, 9.7043],
+        type: 'Public General Hospital',
+        emergency: true,
+        phone: '+237233345678',
+        services: ['Emergency', 'Surgery', 'ICU', 'Cardiology', 'Pediatrics'],
+        capacity: 600,
+        rating: 4.1,
+        city: 'Douala',
+        region: 'Littoral'
+    },
+    {
+        id: 'h007',
+        name: 'Douala Laquintinie Hospital',
+        coordinates: [4.0511, 9.7679],
+        type: 'Public Hospital',
+        emergency: true,
+        phone: '+237233345679',
+        services: ['Emergency', 'Surgery', 'Maternity', 'Pediatrics'],
+        capacity: 400,
+        rating: 3.9,
+        city: 'Douala',
+        region: 'Littoral'
+    },
+    {
+        id: 'h008',
+        name: 'Clinique des Spécialités Douala',
+        coordinates: [4.0380, 9.7100],
+        type: 'Private Specialty Clinic',
+        emergency: true,
+        phone: '+237233345680',
+        services: ['Emergency', 'Cardiology', 'Neurology', 'Orthopedics'],
+        capacity: 120,
+        rating: 4.4,
+        city: 'Douala',
+        region: 'Littoral'
+    },
+    {
+        id: 'h009',
+        name: 'Hôpital Sainte Thérèse Douala',
+        coordinates: [4.0600, 9.7500],
+        type: 'Private Catholic Hospital',
+        emergency: true,
+        phone: '+237233345681',
+        services: ['Emergency', 'Surgery', 'Maternity', 'General Medicine'],
+        capacity: 200,
+        rating: 4.2,
+        city: 'Douala',
+        region: 'Littoral'
+    },
+
+    // Bamenda Hospitals
+    {
+        id: 'h010',
         name: 'Bamenda Regional Hospital',
-        coordinates: [5.9597, 10.1463], // [lat, lng] for Leaflet
-        type: 'Regional Hospital',
+        coordinates: [5.9597, 10.1463],
+        type: 'Public Regional Hospital',
         emergency: true,
-        phone: '119'
+        phone: '+237233456789',
+        services: ['Emergency', 'Surgery', 'ICU', 'Pediatrics'],
+        capacity: 350,
+        rating: 3.8,
+        city: 'Bamenda',
+        region: 'North West'
     },
     {
-        name: 'Garoua Regional Hospital',
-        coordinates: [9.3265, 13.3981], // [lat, lng] for Leaflet
-        type: 'Regional Hospital',
+        id: 'h011',
+        name: 'Bamenda Provincial Hospital',
+        coordinates: [5.9631, 10.1591],
+        type: 'Public Provincial Hospital',
         emergency: true,
-        phone: '119'
+        phone: '+237233456790',
+        services: ['Emergency', 'General Medicine', 'Maternity'],
+        capacity: 250,
+        rating: 3.6,
+        city: 'Bamenda',
+        region: 'North West'
+    },
+    {
+        id: 'h012',
+        name: 'Mezam Polyclinic Bamenda',
+        coordinates: [5.9550, 10.1400],
+        type: 'Private Polyclinic',
+        emergency: true,
+        phone: '+237233456791',
+        services: ['Emergency', 'General Medicine', 'Laboratory'],
+        capacity: 100,
+        rating: 3.9,
+        city: 'Bamenda',
+        region: 'North West'
+    },
+
+    // Garoua Hospitals
+    {
+        id: 'h013',
+        name: 'Garoua Regional Hospital',
+        coordinates: [9.3265, 13.3981],
+        type: 'Public Regional Hospital',
+        emergency: true,
+        phone: '+237222567890',
+        services: ['Emergency', 'Surgery', 'Pediatrics', 'General Medicine'],
+        capacity: 300,
+        rating: 3.7,
+        city: 'Garoua',
+        region: 'North'
+    },
+    {
+        id: 'h014',
+        name: 'Garoua Provincial Hospital',
+        coordinates: [9.3200, 13.4000],
+        type: 'Public Provincial Hospital',
+        emergency: true,
+        phone: '+237222567891',
+        services: ['Emergency', 'General Medicine', 'Maternity'],
+        capacity: 200,
+        rating: 3.5,
+        city: 'Garoua',
+        region: 'North'
+    },
+
+    // Bafoussam Hospitals
+    {
+        id: 'h015',
+        name: 'Bafoussam Regional Hospital',
+        coordinates: [5.4781, 10.4199],
+        type: 'Public Regional Hospital',
+        emergency: true,
+        phone: '+237233678901',
+        services: ['Emergency', 'Surgery', 'Pediatrics'],
+        capacity: 280,
+        rating: 3.8,
+        city: 'Bafoussam',
+        region: 'West'
+    },
+
+    // Maroua Hospitals
+    {
+        id: 'h016',
+        name: 'Maroua Regional Hospital',
+        coordinates: [10.5913, 14.3153],
+        type: 'Public Regional Hospital',
+        emergency: true,
+        phone: '+237222789012',
+        services: ['Emergency', 'Surgery', 'General Medicine'],
+        capacity: 250,
+        rating: 3.6,
+        city: 'Maroua',
+        region: 'Far North'
+    },
+
+    // Bertoua Hospitals
+    {
+        id: 'h017',
+        name: 'Bertoua Regional Hospital',
+        coordinates: [4.5774, 13.6848],
+        type: 'Public Regional Hospital',
+        emergency: true,
+        phone: '+237222890123',
+        services: ['Emergency', 'General Medicine', 'Maternity'],
+        capacity: 200,
+        rating: 3.4,
+        city: 'Bertoua',
+        region: 'East'
+    },
+
+    // Ebolowa Hospitals
+    {
+        id: 'h018',
+        name: 'Ebolowa Regional Hospital',
+        coordinates: [2.9156, 11.1543],
+        type: 'Public Regional Hospital',
+        emergency: true,
+        phone: '+237222901234',
+        services: ['Emergency', 'Surgery', 'Pediatrics'],
+        capacity: 220,
+        rating: 3.7,
+        city: 'Ebolowa',
+        region: 'South'
+    },
+
+    // Ngaoundéré Hospitals
+    {
+        id: 'h019',
+        name: 'Ngaoundéré Regional Hospital',
+        coordinates: [7.3167, 13.5833],
+        type: 'Public Regional Hospital',
+        emergency: true,
+        phone: '+237222012345',
+        services: ['Emergency', 'Surgery', 'General Medicine'],
+        capacity: 270,
+        rating: 3.8,
+        city: 'Ngaoundéré',
+        region: 'Adamawa'
+    },
+
+    // Kribi Hospitals
+    {
+        id: 'h020',
+        name: 'Kribi District Hospital',
+        coordinates: [2.9373, 9.9073],
+        type: 'Public District Hospital',
+        emergency: true,
+        phone: '+237233123456',
+        services: ['Emergency', 'General Medicine', 'Maternity'],
+        capacity: 150,
+        rating: 3.5,
+        city: 'Kribi',
+        region: 'South'
     }
 ];
 
-// Sample fire station data for Cameroon
+// Comprehensive fire station data for Cameroon
 const stationData = [
+    // Yaoundé Fire Stations
     {
-        name: 'Yaoundé Fire Station',
-        coordinates: [3.8480, 11.5021], // [lat, lng] for Leaflet
+        id: 'fs001',
+        name: 'Yaoundé Central Fire Station',
+        coordinates: [3.8480, 11.5021],
+        type: 'Main Headquarters',
+        phone: '+237118001',
+        vehicles: 12,
+        personnel: 45,
+        equipment: ['Fire Trucks', 'Ambulances', 'Rescue Equipment', 'Hazmat Units'],
+        responseTime: 8,
+        coverage: 15,
+        city: 'Yaoundé',
+        region: 'Centre',
+        operational: true
+    },
+    {
+        id: 'fs002',
+        name: 'Yaoundé Bastos Fire Station',
+        coordinates: [3.8691, 11.5174],
+        type: 'District Station',
+        phone: '+237118002',
+        vehicles: 6,
+        personnel: 25,
+        equipment: ['Fire Trucks', 'Rescue Equipment'],
+        responseTime: 6,
+        coverage: 10,
+        city: 'Yaoundé',
+        region: 'Centre',
+        operational: true
+    },
+    {
+        id: 'fs003',
+        name: 'Yaoundé Mfoundi Fire Station',
+        coordinates: [3.8580, 11.5120],
+        type: 'District Station',
+        phone: '+237118003',
+        vehicles: 4,
+        personnel: 20,
+        equipment: ['Fire Trucks', 'First Aid'],
+        responseTime: 7,
+        coverage: 8,
+        city: 'Yaoundé',
+        region: 'Centre',
+        operational: true
+    },
+
+    // Douala Fire Stations
+    {
+        id: 'fs004',
+        name: 'Douala Port Fire Station',
+        coordinates: [4.0511, 9.7679],
+        type: 'Port Authority Station',
+        phone: '+237118004',
+        vehicles: 15,
+        personnel: 60,
+        equipment: ['Fire Trucks', 'Marine Rescue', 'Hazmat Units', 'Foam Units'],
+        responseTime: 5,
+        coverage: 20,
+        city: 'Douala',
+        region: 'Littoral',
+        operational: true
+    },
+    {
+        id: 'fs005',
+        name: 'Douala Central Fire Station',
+        coordinates: [4.0435, 9.7043],
         type: 'Main Station',
-        phone: '118',
-        vehicles: 5
+        phone: '+237118005',
+        vehicles: 10,
+        personnel: 40,
+        equipment: ['Fire Trucks', 'Ambulances', 'Rescue Equipment'],
+        responseTime: 7,
+        coverage: 12,
+        city: 'Douala',
+        region: 'Littoral',
+        operational: true
     },
     {
-        name: 'Douala Fire Station',
-        coordinates: [4.0511, 9.7679], // [lat, lng] for Leaflet
-        type: 'Port Station',
-        phone: '118',
-        vehicles: 8
+        id: 'fs006',
+        name: 'Douala Akwa Fire Station',
+        coordinates: [4.0380, 9.7100],
+        type: 'District Station',
+        phone: '+237118006',
+        vehicles: 5,
+        personnel: 22,
+        equipment: ['Fire Trucks', 'First Aid'],
+        responseTime: 6,
+        coverage: 8,
+        city: 'Douala',
+        region: 'Littoral',
+        operational: true
     },
     {
-        name: 'Bamenda Fire Station',
-        coordinates: [5.9631, 10.1591], // [lat, lng] for Leaflet
+        id: 'fs007',
+        name: 'Douala Bonaberi Fire Station',
+        coordinates: [4.0600, 9.7500],
+        type: 'District Station',
+        phone: '+237118007',
+        vehicles: 4,
+        personnel: 18,
+        equipment: ['Fire Trucks', 'Rescue Equipment'],
+        responseTime: 8,
+        coverage: 10,
+        city: 'Douala',
+        region: 'Littoral',
+        operational: true
+    },
+
+    // Bamenda Fire Stations
+    {
+        id: 'fs008',
+        name: 'Bamenda Regional Fire Station',
+        coordinates: [5.9631, 10.1591],
         type: 'Regional Station',
-        phone: '118',
-        vehicles: 3
+        phone: '+237118008',
+        vehicles: 6,
+        personnel: 28,
+        equipment: ['Fire Trucks', 'Rescue Equipment', 'First Aid'],
+        responseTime: 10,
+        coverage: 15,
+        city: 'Bamenda',
+        region: 'North West',
+        operational: true
+    },
+    {
+        id: 'fs009',
+        name: 'Bamenda Commercial Avenue Fire Station',
+        coordinates: [5.9597, 10.1463],
+        type: 'District Station',
+        phone: '+237118009',
+        vehicles: 3,
+        personnel: 15,
+        equipment: ['Fire Trucks', 'First Aid'],
+        responseTime: 8,
+        coverage: 8,
+        city: 'Bamenda',
+        region: 'North West',
+        operational: true
+    },
+
+    // Garoua Fire Stations
+    {
+        id: 'fs010',
+        name: 'Garoua Regional Fire Station',
+        coordinates: [9.3265, 13.3981],
+        type: 'Regional Station',
+        phone: '+237118010',
+        vehicles: 5,
+        personnel: 25,
+        equipment: ['Fire Trucks', 'Rescue Equipment'],
+        responseTime: 12,
+        coverage: 18,
+        city: 'Garoua',
+        region: 'North',
+        operational: true
+    },
+
+    // Bafoussam Fire Stations
+    {
+        id: 'fs011',
+        name: 'Bafoussam Regional Fire Station',
+        coordinates: [5.4781, 10.4199],
+        type: 'Regional Station',
+        phone: '+237118011',
+        vehicles: 4,
+        personnel: 20,
+        equipment: ['Fire Trucks', 'Rescue Equipment'],
+        responseTime: 10,
+        coverage: 12,
+        city: 'Bafoussam',
+        region: 'West',
+        operational: true
+    },
+
+    // Maroua Fire Stations
+    {
+        id: 'fs012',
+        name: 'Maroua Regional Fire Station',
+        coordinates: [10.5913, 14.3153],
+        type: 'Regional Station',
+        phone: '+237118012',
+        vehicles: 3,
+        personnel: 18,
+        equipment: ['Fire Trucks', 'First Aid'],
+        responseTime: 15,
+        coverage: 20,
+        city: 'Maroua',
+        region: 'Far North',
+        operational: true
+    },
+
+    // Bertoua Fire Stations
+    {
+        id: 'fs013',
+        name: 'Bertoua Regional Fire Station',
+        coordinates: [4.5774, 13.6848],
+        type: 'Regional Station',
+        phone: '+237118013',
+        vehicles: 3,
+        personnel: 15,
+        equipment: ['Fire Trucks', 'First Aid'],
+        responseTime: 12,
+        coverage: 15,
+        city: 'Bertoua',
+        region: 'East',
+        operational: true
+    },
+
+    // Ebolowa Fire Stations
+    {
+        id: 'fs014',
+        name: 'Ebolowa Regional Fire Station',
+        coordinates: [2.9156, 11.1543],
+        type: 'Regional Station',
+        phone: '+237118014',
+        vehicles: 3,
+        personnel: 16,
+        equipment: ['Fire Trucks', 'Rescue Equipment'],
+        responseTime: 11,
+        coverage: 14,
+        city: 'Ebolowa',
+        region: 'South',
+        operational: true
+    },
+
+    // Ngaoundéré Fire Stations
+    {
+        id: 'fs015',
+        name: 'Ngaoundéré Regional Fire Station',
+        coordinates: [7.3167, 13.5833],
+        type: 'Regional Station',
+        phone: '+237118015',
+        vehicles: 4,
+        personnel: 20,
+        equipment: ['Fire Trucks', 'Rescue Equipment'],
+        responseTime: 10,
+        coverage: 16,
+        city: 'Ngaoundéré',
+        region: 'Adamawa',
+        operational: true
+    },
+
+    // Kribi Fire Stations
+    {
+        id: 'fs016',
+        name: 'Kribi Coastal Fire Station',
+        coordinates: [2.9373, 9.9073],
+        type: 'Coastal Station',
+        phone: '+237118016',
+        vehicles: 3,
+        personnel: 14,
+        equipment: ['Fire Trucks', 'Marine Rescue', 'First Aid'],
+        responseTime: 9,
+        coverage: 12,
+        city: 'Kribi',
+        region: 'South',
+        operational: true
+    },
+
+    // Limbe Fire Stations
+    {
+        id: 'fs017',
+        name: 'Limbe Fire Station',
+        coordinates: [4.0186, 9.2043],
+        type: 'District Station',
+        phone: '+237118017',
+        vehicles: 3,
+        personnel: 16,
+        equipment: ['Fire Trucks', 'Rescue Equipment'],
+        responseTime: 8,
+        coverage: 10,
+        city: 'Limbe',
+        region: 'South West',
+        operational: true
+    },
+
+    // Buea Fire Stations
+    {
+        id: 'fs018',
+        name: 'Buea Fire Station',
+        coordinates: [4.1560, 9.2904],
+        type: 'District Station',
+        phone: '+237118018',
+        vehicles: 2,
+        personnel: 12,
+        equipment: ['Fire Trucks', 'First Aid'],
+        responseTime: 9,
+        coverage: 8,
+        city: 'Buea',
+        region: 'South West',
+        operational: true
     }
 ];
 
@@ -548,7 +1071,7 @@ function getSeverityColor(severity) {
     }
 }
 
-// Distance calculation utility
+// Distance calculation utility (Haversine formula)
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Radius of the Earth in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -559,6 +1082,198 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c; // Distance in kilometers
 }
+
+// Dijkstra's Algorithm Implementation for Emergency Services Pathfinding
+class DijkstraPathfinder {
+    constructor() {
+        this.graph = new Map();
+        this.distances = new Map();
+        this.previous = new Map();
+        this.visited = new Set();
+    }
+
+    // Build graph from hospitals and fire stations
+    buildGraph(userLocation, hospitals, fireStations) {
+        this.graph.clear();
+        this.distances.clear();
+        this.previous.clear();
+        this.visited.clear();
+
+        // Add user location as starting node
+        const userNode = `user_${userLocation.lat}_${userLocation.lng}`;
+        this.graph.set(userNode, new Map());
+
+        // Add hospital nodes
+        hospitals.forEach(hospital => {
+            const hospitalNode = `hospital_${hospital.id}`;
+            this.graph.set(hospitalNode, new Map());
+
+            // Connect user to hospital
+            const distance = calculateDistance(
+                userLocation.lat, userLocation.lng,
+                hospital.coordinates[0], hospital.coordinates[1]
+            );
+            this.graph.get(userNode).set(hospitalNode, distance);
+        });
+
+        // Add fire station nodes
+        fireStations.forEach(station => {
+            const stationNode = `station_${station.id}`;
+            this.graph.set(stationNode, new Map());
+
+            // Connect user to station
+            const distance = calculateDistance(
+                userLocation.lat, userLocation.lng,
+                station.coordinates[0], station.coordinates[1]
+            );
+            this.graph.get(userNode).set(stationNode, distance);
+        });
+
+        // Connect hospitals to each other (for complex routing)
+        hospitals.forEach(hospital1 => {
+            const node1 = `hospital_${hospital1.id}`;
+            hospitals.forEach(hospital2 => {
+                if (hospital1.id !== hospital2.id) {
+                    const node2 = `hospital_${hospital2.id}`;
+                    const distance = calculateDistance(
+                        hospital1.coordinates[0], hospital1.coordinates[1],
+                        hospital2.coordinates[0], hospital2.coordinates[1]
+                    );
+                    this.graph.get(node1).set(node2, distance);
+                }
+            });
+        });
+
+        // Connect fire stations to each other
+        fireStations.forEach(station1 => {
+            const node1 = `station_${station1.id}`;
+            fireStations.forEach(station2 => {
+                if (station1.id !== station2.id) {
+                    const node2 = `station_${station2.id}`;
+                    const distance = calculateDistance(
+                        station1.coordinates[0], station1.coordinates[1],
+                        station2.coordinates[0], station2.coordinates[1]
+                    );
+                    this.graph.get(node1).set(node2, distance);
+                }
+            });
+        });
+
+        return userNode;
+    }
+
+    // Find shortest path using Dijkstra's algorithm
+    findShortestPath(startNode, targetType = 'hospital') {
+        // Initialize distances
+        for (let node of this.graph.keys()) {
+            this.distances.set(node, Infinity);
+            this.previous.set(node, null);
+        }
+        this.distances.set(startNode, 0);
+
+        // Priority queue (using array for simplicity)
+        const unvisited = Array.from(this.graph.keys());
+
+        while (unvisited.length > 0) {
+            // Find node with minimum distance
+            let currentNode = unvisited.reduce((min, node) =>
+                this.distances.get(node) < this.distances.get(min) ? node : min
+            );
+
+            // Remove from unvisited
+            unvisited.splice(unvisited.indexOf(currentNode), 1);
+            this.visited.add(currentNode);
+
+            // If we reached a target node, we can stop
+            if (currentNode.startsWith(targetType)) {
+                break;
+            }
+
+            // Update distances to neighbors
+            const neighbors = this.graph.get(currentNode);
+            if (neighbors) {
+                for (let [neighbor, weight] of neighbors) {
+                    if (!this.visited.has(neighbor)) {
+                        const newDistance = this.distances.get(currentNode) + weight;
+                        if (newDistance < this.distances.get(neighbor)) {
+                            this.distances.set(neighbor, newDistance);
+                            this.previous.set(neighbor, currentNode);
+                        }
+                    }
+                }
+            }
+        }
+
+        return this.getOptimalTargets(targetType);
+    }
+
+    // Get optimal targets sorted by distance and other factors
+    getOptimalTargets(targetType) {
+        const targets = [];
+
+        for (let [node, distance] of this.distances) {
+            if (node.startsWith(targetType) && distance !== Infinity) {
+                const id = node.split('_')[1];
+                const data = targetType === 'hospital' ?
+                    hospitalData.find(h => h.id === id) :
+                    stationData.find(s => s.id === id);
+
+                if (data) {
+                    targets.push({
+                        ...data,
+                        distance: distance,
+                        path: this.reconstructPath(node)
+                    });
+                }
+            }
+        }
+
+        // Sort by multiple criteria
+        return targets.sort((a, b) => {
+            if (targetType === 'hospital') {
+                // For hospitals: prioritize emergency capability, then distance, then rating
+                if (a.emergency !== b.emergency) return b.emergency - a.emergency;
+                if (Math.abs(a.distance - b.distance) > 1) return a.distance - b.distance;
+                return b.rating - a.rating;
+            } else {
+                // For fire stations: prioritize operational status, vehicles, then distance
+                if (a.operational !== b.operational) return b.operational - a.operational;
+                if (Math.abs(a.vehicles - b.vehicles) > 2) return b.vehicles - a.vehicles;
+                return a.distance - b.distance;
+            }
+        });
+    }
+
+    // Reconstruct path from start to target
+    reconstructPath(targetNode) {
+        const path = [];
+        let currentNode = targetNode;
+
+        while (currentNode !== null) {
+            path.unshift(currentNode);
+            currentNode = this.previous.get(currentNode);
+        }
+
+        return path;
+    }
+
+    // Calculate route efficiency score
+    calculateRouteEfficiency(target, userLocation) {
+        const baseScore = 100;
+        const distancePenalty = target.distance * 2; // 2 points per km
+        const timePenalty = target.responseTime || 0; // Response time penalty
+
+        let bonusPoints = 0;
+        if (target.emergency) bonusPoints += 20;
+        if (target.rating && target.rating > 4.0) bonusPoints += 10;
+        if (target.vehicles && target.vehicles > 5) bonusPoints += 15;
+
+        return Math.max(0, baseScore - distancePenalty - timePenalty + bonusPoints);
+    }
+}
+
+// Global pathfinder instance
+const pathfinder = new DijkstraPathfinder();
 
 
 
@@ -699,8 +1414,207 @@ function searchLocation() {
     }
 }
 
+// Smart pathfinding functions using Dijkstra's algorithm
+function findOptimalHospitals(criteria = 'distance') {
+    if (!mapUserLocation) {
+        showErrorToast('Please get your location first by clicking "My Location" button.');
+        return;
+    }
+
+    console.log(`Finding optimal hospitals by ${criteria}...`);
+
+    // Build graph and find optimal paths
+    const userNode = pathfinder.buildGraph(mapUserLocation, hospitalData, stationData);
+    const optimalHospitals = pathfinder.findShortestPath(userNode, 'hospital');
+
+    // Apply additional criteria
+    let sortedHospitals;
+    if (criteria === 'emergency') {
+        sortedHospitals = optimalHospitals.filter(h => h.emergency).slice(0, 5);
+    } else {
+        sortedHospitals = optimalHospitals.slice(0, 5);
+    }
+
+    // Clear existing hospital markers
+    clearHospitalMarkers();
+
+    // Add optimal hospital markers with routes
+    sortedHospitals.forEach((hospital, index) => {
+        addHospitalMarker(hospital, index + 1);
+        if (index === 0) {
+            // Draw route to closest hospital
+            drawRoute(mapUserLocation, hospital, 'hospital');
+        }
+    });
+
+    // Show results panel
+    showOptimalResultsPanel(sortedHospitals, 'hospitals', criteria);
+
+    showSuccessToast(`Found ${sortedHospitals.length} optimal hospitals using Dijkstra's algorithm!`);
+}
+
+function findOptimalStations(criteria = 'distance') {
+    if (!mapUserLocation) {
+        showErrorToast('Please get your location first by clicking "My Location" button.');
+        return;
+    }
+
+    console.log(`Finding optimal fire stations by ${criteria}...`);
+
+    // Build graph and find optimal paths
+    const userNode = pathfinder.buildGraph(mapUserLocation, hospitalData, stationData);
+    const optimalStations = pathfinder.findShortestPath(userNode, 'station');
+
+    // Apply additional criteria
+    let sortedStations;
+    if (criteria === 'vehicles') {
+        sortedStations = optimalStations.sort((a, b) => b.vehicles - a.vehicles).slice(0, 5);
+    } else {
+        sortedStations = optimalStations.slice(0, 5);
+    }
+
+    // Clear existing station markers
+    clearStationMarkers();
+
+    // Add optimal station markers with routes
+    sortedStations.forEach((station, index) => {
+        addFireStationMarker(station, index + 1);
+        if (index === 0) {
+            // Draw route to closest station
+            drawRoute(mapUserLocation, station, 'station');
+        }
+    });
+
+    // Show results panel
+    showOptimalResultsPanel(sortedStations, 'stations', criteria);
+
+    showSuccessToast(`Found ${sortedStations.length} optimal fire stations using Dijkstra's algorithm!`);
+}
+
+function findNearestHospital() {
+    findOptimalHospitals('distance');
+}
+
+function findFireStation() {
+    findOptimalStations('distance');
+}
+
+// Enhanced marker functions
+function addHospitalMarker(hospital, rank = null) {
+    const hospitalIcon = L.divIcon({
+        className: 'emergency-marker hospital-marker',
+        html: `<i class="fas fa-hospital" style="color: white; font-size: 14px;"></i>${rank ? `<span style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center;">${rank}</span>` : ''}`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -15]
+    });
+
+    const marker = L.marker([hospital.coordinates[0], hospital.coordinates[1]], {
+        icon: hospitalIcon
+    }).addTo(mapInstance);
+
+    const efficiency = pathfinder.calculateRouteEfficiency(hospital, mapUserLocation);
+
+    const popupContent = `
+        <div class="popup-title">${hospital.name}</div>
+        <div class="popup-details">
+            <strong>Type:</strong> ${hospital.type}<br>
+            <strong>Distance:</strong> ${hospital.distance ? hospital.distance.toFixed(2) + ' km' : 'Calculating...'}<br>
+            <strong>Emergency:</strong> ${hospital.emergency ? '✅ Yes' : '❌ No'}<br>
+            <strong>Rating:</strong> ${'⭐'.repeat(Math.floor(hospital.rating))} (${hospital.rating})<br>
+            <strong>Capacity:</strong> ${hospital.capacity} beds<br>
+            <strong>Services:</strong> ${hospital.services.slice(0, 3).join(', ')}${hospital.services.length > 3 ? '...' : ''}<br>
+            <strong>Phone:</strong> ${hospital.phone}<br>
+            <strong>Efficiency Score:</strong> ${efficiency.toFixed(1)}/100
+        </div>
+        <div class="popup-actions">
+            <button class="btn btn-info btn-sm" onclick="getDirections(${hospital.coordinates[0]}, ${hospital.coordinates[1]}, '${hospital.name}')">
+                <i class="fas fa-directions"></i> Directions
+            </button>
+            <button class="btn btn-success btn-sm" onclick="callHospital('${hospital.phone}')">
+                <i class="fas fa-phone"></i> Call
+            </button>
+        </div>
+    `;
+
+    marker.bindPopup(popupContent);
+    mapHospitalMarkers.push(marker);
+
+    return marker;
+}
+
+function addFireStationMarker(station, rank = null) {
+    const stationIcon = L.divIcon({
+        className: 'emergency-marker station-marker',
+        html: `<i class="fas fa-truck" style="color: white; font-size: 14px;"></i>${rank ? `<span style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center;">${rank}</span>` : ''}`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -15]
+    });
+
+    const marker = L.marker([station.coordinates[0], station.coordinates[1]], {
+        icon: stationIcon
+    }).addTo(mapInstance);
+
+    const efficiency = pathfinder.calculateRouteEfficiency(station, mapUserLocation);
+
+    const popupContent = `
+        <div class="popup-title">${station.name}</div>
+        <div class="popup-details">
+            <strong>Type:</strong> ${station.type}<br>
+            <strong>Distance:</strong> ${station.distance ? station.distance.toFixed(2) + ' km' : 'Calculating...'}<br>
+            <strong>Vehicles:</strong> ${station.vehicles} units<br>
+            <strong>Personnel:</strong> ${station.personnel} firefighters<br>
+            <strong>Response Time:</strong> ~${station.responseTime} minutes<br>
+            <strong>Coverage:</strong> ${station.coverage} km radius<br>
+            <strong>Equipment:</strong> ${station.equipment.slice(0, 2).join(', ')}${station.equipment.length > 2 ? '...' : ''}<br>
+            <strong>Phone:</strong> ${station.phone}<br>
+            <strong>Status:</strong> ${station.operational ? '🟢 Operational' : '🔴 Offline'}<br>
+            <strong>Efficiency Score:</strong> ${efficiency.toFixed(1)}/100
+        </div>
+        <div class="popup-actions">
+            <button class="btn btn-info btn-sm" onclick="getDirections(${station.coordinates[0]}, ${station.coordinates[1]}, '${station.name}')">
+                <i class="fas fa-directions"></i> Directions
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="callFireStation('${station.phone}')">
+                <i class="fas fa-phone"></i> Call
+            </button>
+        </div>
+    `;
+
+    marker.bindPopup(popupContent);
+    mapStationMarkers.push(marker);
+
+    return marker;
+}
+
 function toggleLayer(layer) {
     console.log('Toggle layer:', layer);
+
+    switch(layer) {
+        case 'hospitals':
+            if (mapHospitalMarkers.length > 0) {
+                clearHospitalMarkers();
+                showInfoToast('Hospital markers hidden');
+            } else {
+                showAllHospitals();
+                showInfoToast('Hospital markers shown');
+            }
+            break;
+        case 'stations':
+            if (mapStationMarkers.length > 0) {
+                clearStationMarkers();
+                showInfoToast('Fire station markers hidden');
+            } else {
+                showAllFireStations();
+                showInfoToast('Fire station markers shown');
+            }
+            break;
+        case 'fires':
+            // Toggle emergency fire markers
+            showInfoToast('Emergency fire markers toggled');
+            break;
+    }
 }
 
 // Enhanced Emergency Reporting System
@@ -2123,14 +3037,109 @@ function showGraphInfo() {
     modal.show();
 }
 
+// Supporting functions for enhanced map functionality
+
+function showAllHospitals() {
+    clearHospitalMarkers();
+    hospitalData.forEach(hospital => {
+        addHospitalMarker(hospital);
+    });
+    showSuccessToast(`Showing ${hospitalData.length} hospitals across Cameroon`);
+}
+
+function showAllFireStations() {
+    clearStationMarkers();
+    stationData.forEach(station => {
+        addFireStationMarker(station);
+    });
+    showSuccessToast(`Showing ${stationData.length} fire stations across Cameroon`);
+}
+
+function clearHospitalMarkers() {
+    mapHospitalMarkers.forEach(marker => {
+        mapInstance.removeLayer(marker);
+    });
+    mapHospitalMarkers = [];
+}
+
+function clearStationMarkers() {
+    mapStationMarkers.forEach(marker => {
+        mapInstance.removeLayer(marker);
+    });
+    mapStationMarkers = [];
+}
+
+function clearRoute() {
+    // Remove route polylines if they exist
+    if (window.currentRoute) {
+        mapInstance.removeLayer(window.currentRoute);
+        window.currentRoute = null;
+    }
+    showInfoToast('Route cleared');
+}
+
+function drawRoute(start, destination, type) {
+    // Clear existing route
+    clearRoute();
+
+    // Create route polyline
+    const routeCoords = [
+        [start.lat, start.lng],
+        [destination.coordinates[0], destination.coordinates[1]]
+    ];
+
+    const routeColor = type === 'hospital' ? '#17a2b8' : '#ffc107';
+
+    window.currentRoute = L.polyline(routeCoords, {
+        color: routeColor,
+        weight: 4,
+        opacity: 0.8,
+        dashArray: '10, 10'
+    }).addTo(mapInstance);
+
+    // Fit map to show entire route
+    const group = new L.featureGroup([window.currentRoute]);
+    mapInstance.fitBounds(group.getBounds().pad(0.1));
+}
+
+function focusOnLocation(lat, lng, name) {
+    mapInstance.setView([lat, lng], 16);
+    showInfoToast(`Focused on ${name}`);
+
+    // Close modal if open
+    const modal = bootstrap.Modal.getInstance(document.getElementById('resultsModal'));
+    if (modal) modal.hide();
+}
+
+function callHospital(phone) {
+    if (confirm(`Call ${phone}?`)) {
+        window.location.href = `tel:${phone}`;
+    }
+}
+
+function callFireStation(phone) {
+    if (confirm(`Call ${phone}?`)) {
+        window.location.href = `tel:${phone}`;
+    }
+}
+
 function shareLocation() {
     if (mapUserLocation) {
-        const locationText = `My location: ${mapUserLocation.lat.toFixed(4)}, ${mapUserLocation.lng.toFixed(4)}`;
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(locationText);
-            showSuccessToast('Location copied to clipboard!');
+        const shareData = {
+            title: 'My Emergency Location',
+            text: `I'm at coordinates: ${mapUserLocation.lat.toFixed(6)}, ${mapUserLocation.lng.toFixed(6)}`,
+            url: `https://www.google.com/maps?q=${mapUserLocation.lat},${mapUserLocation.lng}`
+        };
+
+        if (navigator.share) {
+            navigator.share(shareData);
         } else {
-            alert(locationText);
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(shareData.url).then(() => {
+                showSuccessToast('Location link copied to clipboard!');
+            }).catch(() => {
+                alert(shareData.text);
+            });
         }
     } else {
         showErrorToast('Please get your location first');
@@ -2149,9 +3158,15 @@ function callAmbulance() {
     }
 }
 
-function getDirections(lat, lng) {
-    const url = `https://www.openstreetmap.org/directions?to=${lat},${lng}`;
-    window.open(url, '_blank');
+function getDirections(lat, lng, name) {
+    if (!mapUserLocation) {
+        showErrorToast('Please get your location first');
+        return;
+    }
+
+    const googleMapsUrl = `https://www.google.com/maps/dir/${mapUserLocation.lat},${mapUserLocation.lng}/${lat},${lng}`;
+    window.open(googleMapsUrl, '_blank');
+    showInfoToast(`Opening directions to ${name || 'destination'} in Google Maps`);
 }
 
 // Toast notification functions
@@ -2281,31 +3296,16 @@ function addMarkers() {
             mapEmergencyMarkers.push(marker);
         });
 
-        // Add hospital markers
+        // Add hospital markers with enhanced functionality
         hospitalData.forEach((hospital, index) => {
             console.log(`Adding hospital marker ${index}:`, hospital.coordinates);
-            const marker = L.marker(hospital.coordinates)
-                .addTo(mapInstance)
-                .bindPopup(`
-                    <div><strong>${hospital.name}</strong></div>
-                    <div>Type: ${hospital.type}</div>
-                    <div>Phone: ${hospital.phone}</div>
-                `);
-            mapHospitalMarkers.push(marker);
+            addHospitalMarker(hospital);
         });
 
-        // Add fire station markers
+        // Add fire station markers with enhanced functionality
         stationData.forEach((station, index) => {
             console.log(`Adding station marker ${index}:`, station.coordinates);
-            const marker = L.marker(station.coordinates)
-                .addTo(mapInstance)
-                .bindPopup(`
-                    <div><strong>${station.name}</strong></div>
-                    <div>Type: ${station.type}</div>
-                    <div>Vehicles: ${station.vehicles}</div>
-                    <div>Phone: ${station.phone}</div>
-                `);
-            mapStationMarkers.push(marker);
+            addFireStationMarker(station);
         });
 
         console.log('All markers added successfully');
