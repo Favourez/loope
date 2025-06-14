@@ -27,7 +27,17 @@
                 <h1 class="display-4 text-success">
                     <i class="fas fa-first-aid me-3"></i>First Aid Practices
                 </h1>
-                <p class="lead">Learn life-saving techniques with step-by-step guides and video instructions</p>
+                <p class="lead">Learn life-saving techniques with step-by-step guides, videos, and AI assistance</p>
+
+                <!-- AI Chatbot Button -->
+                <div class="mt-3">
+                    <a href="{{ url_for('medical_chatbot') }}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-robot me-2"></i>Ask Medical AI Assistant
+                    </a>
+                    <a href="{{ url_for('map_page') }}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-map-marked-alt me-2"></i>Find Nearest Hospital
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -62,29 +72,72 @@
     <div class="row" id="practicesGrid">
         {% for practice in practices %}
         <div class="col-lg-4 col-md-6 mb-4 practice-card" data-category="{{ practice.emergency_type }}">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <!-- Practice Image -->
+                {% if practice.image %}
+                <div class="position-relative">
+                    <img src="{{ practice.image }}" class="card-img-top" alt="{{ practice.title }}"
+                         style="height: 200px; object-fit: cover;">
+                    <div class="position-absolute top-0 end-0 m-2">
+                        {% if practice.difficulty == 'Beginner' %}
+                        <span class="badge bg-success">{{ practice.difficulty }}</span>
+                        {% elif practice.difficulty == 'Intermediate' %}
+                        <span class="badge bg-warning">{{ practice.difficulty }}</span>
+                        {% elif practice.difficulty == 'Advanced' %}
+                        <span class="badge bg-danger">{{ practice.difficulty }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="position-absolute bottom-0 start-0 m-2">
+                        <i class="{{ practice.icon }} fa-2x text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.7);"></i>
+                    </div>
+                </div>
+                {% else %}
                 <div class="card-header bg-gradient text-white text-center" style="background: linear-gradient(45deg, #28a745, #20c997);">
                     <i class="{{ practice.icon }} fa-3x mb-2"></i>
-                    <h5 class="card-title mb-0">{{ practice.title }}</h5>
                 </div>
+                {% endif %}
+
                 <div class="card-body">
+                    <h5 class="card-title">{{ practice.title }}</h5>
                     <p class="card-text">{{ practice.description }}</p>
+
+                    <!-- Practice Info -->
                     <div class="mb-3">
-                        <span class="badge bg-secondary">{{ practice.emergency_type }}</span>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            <span class="badge bg-secondary">{{ practice.emergency_type }}</span>
+                            {% if practice.duration %}
+                            <span class="badge bg-info">{{ practice.duration }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Keywords -->
+                        {% if practice.keywords %}
+                        <div class="small text-muted">
+                            <strong>Related:</strong>
+                            {% for keyword in practice.keywords[:3] %}
+                                {{ keyword }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                            {% if practice.keywords|length > 3 %}...{% endif %}
+                        </div>
+                        {% endif %}
                     </div>
+
                     <div class="d-grid">
                         <a href="{{ url_for('first_aid_detail', practice_id=practice.id) }}" class="btn btn-success">
-                            <i class="fas fa-book-open me-2"></i>View Guide
+                            <i class="fas fa-book-open me-2"></i>View Complete Guide
                         </a>
                     </div>
                 </div>
+
                 <div class="card-footer bg-light">
-                    <small class="text-muted">
-                        <i class="fas fa-video me-1"></i>Includes video instructions
-                        <span class="float-end">
-                            <i class="fas fa-clock me-1"></i>5-10 min read
-                        </span>
-                    </small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-video me-1"></i>Video included
+                        </small>
+                        <small class="text-muted">
+                            <i class="fas fa-images me-1"></i>Visual guide
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>

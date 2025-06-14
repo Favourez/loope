@@ -20,15 +20,28 @@
 
 {% block content %}
 <div class="container mt-4">
-    <!-- Header -->
+    <!-- Header with Image -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 bg-gradient text-white" style="background: linear-gradient(45deg, #28a745, #20c997);">
-                <div class="card-body text-center py-5">
-                    <i class="{{ practice.icon }} fa-4x mb-3"></i>
-                    <h1 class="display-4">{{ practice.title }}</h1>
-                    <p class="lead">{{ practice.description }}</p>
-                    <span class="badge bg-light text-dark fs-6">{{ practice.emergency_type }}</span>
+            <div class="card border-0 overflow-hidden">
+                <!-- Background Image -->
+                <div class="position-relative">
+                    <img src="{{ practice.image }}" class="card-img" alt="{{ practice.title }}"
+                         style="height: 300px; object-fit: cover; filter: brightness(0.4);">
+                    <div class="card-img-overlay d-flex flex-column justify-content-center text-center text-white">
+                        <i class="{{ practice.icon }} fa-4x mb-3"></i>
+                        <h1 class="display-4 fw-bold">{{ practice.title }}</h1>
+                        <p class="lead">{{ practice.description }}</p>
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                            <span class="badge bg-danger fs-6">{{ practice.emergency_type }}</span>
+                            {% if practice.difficulty %}
+                            <span class="badge bg-warning fs-6">{{ practice.difficulty }}</span>
+                            {% endif %}
+                            {% if practice.duration %}
+                            <span class="badge bg-info fs-6">{{ practice.duration }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -243,14 +256,28 @@ function loadTipsContent(id) {
 }
 
 function loadVideoContent(id) {
-    // Sample educational videos (replace with actual video URLs)
-    const videoUrls = {
-        1: "https://www.youtube.com/embed/TRVjwdNVgjs", // CPR training video
-        2: "https://www.youtube.com/embed/7CgtIgSyAiU"  // Choking relief video
-    };
+    // Use video URL from practice data
+    const videoUrl = "{{ practice.video_url|safe }}";
+    if (videoUrl && videoUrl !== "None") {
+        document.getElementById('instructionVideo').src = videoUrl;
+    } else {
+        // Fallback video URLs for each practice
+        const fallbackUrls = {
+            1: "https://www.youtube.com/embed/TRVjwdNVgjs", // CPR training video
+            2: "https://www.youtube.com/embed/7CgtIgSyAiU", // Choking relief video
+            3: "https://www.youtube.com/embed/kAOXABnbOns", // Burn treatment
+            4: "https://www.youtube.com/embed/mFmNvyZhHtY", // Bleeding control
+            5: "https://www.youtube.com/embed/8BHXqQdWGf4", // Fracture management
+            6: "https://www.youtube.com/embed/QvbHmGl7U8s", // Shock treatment
+            7: "https://www.youtube.com/embed/dXqbOOjRpzE", // Allergic reaction
+            8: "https://www.youtube.com/embed/7Bkn2d3F8yE", // Heat stroke
+            9: "https://www.youtube.com/embed/WEkSYzeBb2c", // Seizure response
+            10: "https://www.youtube.com/embed/QvbHmGl7U8s" // Poisoning emergency
+        };
 
-    const videoUrl = videoUrls[id] || "https://www.youtube.com/embed/dQw4w9WgXcQ";
-    document.getElementById('instructionVideo').src = videoUrl;
+        const fallbackUrl = fallbackUrls[id] || "https://www.youtube.com/embed/TRVjwdNVgjs";
+        document.getElementById('instructionVideo').src = fallbackUrl;
+    }
 }
 
 function callEmergency() {

@@ -93,70 +93,120 @@ FIRST_AID_PRACTICES = [
         'title': 'CPR (Cardiopulmonary Resuscitation)',
         'description': 'Life-saving technique for cardiac arrest',
         'icon': 'fas fa-heartbeat',
-        'emergency_type': 'Cardiac Emergency'
+        'emergency_type': 'Cardiac Emergency',
+        'image': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/TRVjwdNVgjs',
+        'duration': '5-10 minutes',
+        'difficulty': 'Intermediate',
+        'keywords': ['cardiac arrest', 'heart attack', 'unconscious', 'no pulse', 'chest compressions']
     },
     {
         'id': 2,
         'title': 'Choking Relief (Heimlich Maneuver)',
         'description': 'Emergency procedure for airway obstruction',
         'icon': 'fas fa-lungs',
-        'emergency_type': 'Airway Emergency'
+        'emergency_type': 'Airway Emergency',
+        'image': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/7CgtIgSyAiU',
+        'duration': '2-5 minutes',
+        'difficulty': 'Beginner',
+        'keywords': ['choking', 'airway obstruction', 'heimlich', 'back blows', 'abdominal thrusts']
     },
     {
         'id': 3,
         'title': 'Burn Treatment',
         'description': 'Immediate care for thermal injuries',
         'icon': 'fas fa-fire',
-        'emergency_type': 'Thermal Emergency'
+        'emergency_type': 'Thermal Emergency',
+        'image': 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/kAOXABnbOns',
+        'duration': '10-15 minutes',
+        'difficulty': 'Beginner',
+        'keywords': ['burns', 'thermal injury', 'fire', 'hot water', 'chemical burns', 'cooling']
     },
     {
         'id': 4,
         'title': 'Wound Care and Bleeding Control',
         'description': 'Managing cuts and severe bleeding',
         'icon': 'fas fa-band-aid',
-        'emergency_type': 'Trauma Emergency'
+        'emergency_type': 'Trauma Emergency',
+        'image': 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/mFmNvyZhHtY',
+        'duration': '5-10 minutes',
+        'difficulty': 'Beginner',
+        'keywords': ['bleeding', 'cuts', 'wounds', 'pressure', 'bandage', 'hemorrhage']
     },
     {
         'id': 5,
         'title': 'Fracture Management',
         'description': 'Stabilizing broken bones',
         'icon': 'fas fa-bone',
-        'emergency_type': 'Orthopedic Emergency'
+        'emergency_type': 'Orthopedic Emergency',
+        'image': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/8BHXqQdWGf4',
+        'duration': '10-20 minutes',
+        'difficulty': 'Intermediate',
+        'keywords': ['fracture', 'broken bone', 'splint', 'immobilization', 'support']
     },
     {
         'id': 6,
         'title': 'Shock Treatment',
         'description': 'Managing life-threatening shock',
         'icon': 'fas fa-exclamation-triangle',
-        'emergency_type': 'Critical Emergency'
+        'emergency_type': 'Critical Emergency',
+        'image': 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/QvbHmGl7U8s',
+        'duration': '5-15 minutes',
+        'difficulty': 'Advanced',
+        'keywords': ['shock', 'pale skin', 'weak pulse', 'low blood pressure', 'trauma']
     },
     {
         'id': 7,
         'title': 'Allergic Reaction Response',
         'description': 'Managing severe allergic reactions',
         'icon': 'fas fa-allergies',
-        'emergency_type': 'Allergic Emergency'
+        'emergency_type': 'Allergic Emergency',
+        'image': 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/dXqbOOjRpzE',
+        'duration': '3-10 minutes',
+        'difficulty': 'Intermediate',
+        'keywords': ['allergy', 'anaphylaxis', 'epipen', 'swelling', 'breathing difficulty']
     },
     {
         'id': 8,
         'title': 'Heat Stroke Treatment',
         'description': 'Managing heat-related emergencies',
         'icon': 'fas fa-thermometer-full',
-        'emergency_type': 'Environmental Emergency'
+        'emergency_type': 'Environmental Emergency',
+        'image': 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/7Bkn2d3F8yE',
+        'duration': '10-20 minutes',
+        'difficulty': 'Beginner',
+        'keywords': ['heat stroke', 'overheating', 'dehydration', 'cooling', 'temperature']
     },
     {
         'id': 9,
-        'title': 'Hypothermia Management',
-        'description': 'Treating dangerous cold exposure',
-        'icon': 'fas fa-snowflake',
-        'emergency_type': 'Environmental Emergency'
+        'title': 'Seizure Response',
+        'description': 'How to help someone having a seizure',
+        'icon': 'fas fa-brain',
+        'emergency_type': 'Neurological Emergency',
+        'image': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/WEkSYzeBb2c',
+        'duration': '5-10 minutes',
+        'difficulty': 'Beginner',
+        'keywords': ['seizure', 'epilepsy', 'convulsions', 'safety', 'positioning']
     },
     {
         'id': 10,
-        'title': 'Poisoning Response',
-        'description': 'Emergency response to toxic exposure',
+        'title': 'Poisoning Emergency',
+        'description': 'Immediate response to poisoning incidents',
         'icon': 'fas fa-skull-crossbones',
-        'emergency_type': 'Toxicological Emergency'
+        'emergency_type': 'Toxicological Emergency',
+        'image': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop',
+        'video_url': 'https://www.youtube.com/embed/QvbHmGl7U8s',
+        'duration': '5-15 minutes',
+        'difficulty': 'Intermediate',
+        'keywords': ['poisoning', 'toxic', 'ingestion', 'chemicals', 'antidote']
     }
 ]
 
@@ -461,6 +511,108 @@ def first_aid_detail(practice_id):
     page_views_total.labels(page='first_aid_detail').inc()
     first_aid_views_total.labels(practice_id=str(practice_id), practice_name=practice['title']).inc()
     return render_template('first_aid_detail.html', practice=practice)
+
+@app.route('/medical-chatbot', methods=['GET', 'POST'])
+@login_required
+def medical_chatbot():
+    if request.method == 'POST':
+        data = request.get_json()
+        user_message = data.get('message', '').strip().lower()
+
+        # Simple AI-like responses for medical emergencies
+        response = get_medical_emergency_response(user_message)
+        return jsonify({'response': response})
+
+    return render_template('medical_chatbot.html')
+
+def get_medical_emergency_response(message):
+    """Simple rule-based medical emergency chatbot responses"""
+
+    # Emergency keywords and responses
+    emergency_responses = {
+        'heart attack': {
+            'response': "🚨 **HEART ATTACK EMERGENCY** 🚨\n\n**IMMEDIATE ACTIONS:**\n1. Call 119 (ambulance) immediately\n2. Have the person sit down and rest\n3. Give aspirin if available and not allergic\n4. Loosen tight clothing\n5. Be ready to perform CPR if they become unconscious\n\n**SIGNS:** Chest pain, shortness of breath, nausea, sweating\n\n**DO NOT:** Give food or water",
+            'urgency': 'critical'
+        },
+        'choking': {
+            'response': "🚨 **CHOKING EMERGENCY** 🚨\n\n**IMMEDIATE ACTIONS:**\n1. Ask 'Are you choking?'\n2. If they can't speak/cough: Stand behind them\n3. Give 5 back blows between shoulder blades\n4. Give 5 abdominal thrusts (Heimlich maneuver)\n5. Alternate back blows and abdominal thrusts\n6. Call 118 if object doesn't dislodge\n\n**FOR INFANTS:** Use gentle back blows and chest thrusts",
+            'urgency': 'critical'
+        },
+        'bleeding': {
+            'response': "🩸 **BLEEDING CONTROL** 🩸\n\n**IMMEDIATE ACTIONS:**\n1. Apply direct pressure with clean cloth\n2. Elevate the injured area above heart level\n3. Don't remove embedded objects\n4. Apply pressure bandage\n5. Call 119 for severe bleeding\n\n**SEVERE BLEEDING SIGNS:** Spurting blood, won't stop after 10 minutes of pressure\n\n**SHOCK PREVENTION:** Keep person warm and lying down",
+            'urgency': 'high'
+        },
+        'burn': {
+            'response': "🔥 **BURN TREATMENT** 🔥\n\n**IMMEDIATE ACTIONS:**\n1. Remove from heat source safely\n2. Cool with running water for 10-20 minutes\n3. Remove jewelry/tight clothing before swelling\n4. Cover with clean, dry cloth\n5. Call 119 for severe burns\n\n**DO NOT:** Use ice, butter, or ointments\n**SEVERE BURNS:** Larger than palm, on face/hands/genitals, or deep",
+            'urgency': 'high'
+        },
+        'fracture': {
+            'response': "🦴 **FRACTURE MANAGEMENT** 🦴\n\n**IMMEDIATE ACTIONS:**\n1. Don't move the person unless in danger\n2. Support the injured area\n3. Apply splint if trained (don't move bone)\n4. Apply ice wrapped in cloth\n5. Call 119 for severe fractures\n\n**SIGNS:** Deformity, severe pain, inability to move, numbness\n**OPEN FRACTURE:** Don't push bone back in, cover with sterile dressing",
+            'urgency': 'medium'
+        },
+        'seizure': {
+            'response': "🧠 **SEIZURE RESPONSE** 🧠\n\n**IMMEDIATE ACTIONS:**\n1. Stay calm and time the seizure\n2. Clear area of dangerous objects\n3. Turn person on their side\n4. Put something soft under their head\n5. Call 119 if seizure lasts >5 minutes\n\n**DO NOT:** Put anything in their mouth, restrain them\n**AFTER SEIZURE:** Stay with them, they may be confused",
+            'urgency': 'medium'
+        },
+        'poisoning': {
+            'response': "☠️ **POISONING EMERGENCY** ☠️\n\n**IMMEDIATE ACTIONS:**\n1. Call Poison Control: 119\n2. Identify the poison if possible\n3. If conscious: rinse mouth with water\n4. Don't induce vomiting unless told to\n5. Save poison container/vomit sample\n\n**INHALED POISON:** Get to fresh air immediately\n**SKIN CONTACT:** Remove contaminated clothing, rinse with water",
+            'urgency': 'critical'
+        },
+        'allergic reaction': {
+            'response': "🤧 **ALLERGIC REACTION** 🤧\n\n**MILD REACTION:**\n- Antihistamine (Benadryl)\n- Cool compress for itching\n- Avoid allergen\n\n**SEVERE (ANAPHYLAXIS):**\n1. Call 119 immediately\n2. Use EpiPen if available\n3. Have person lie down, elevate legs\n4. Be ready for CPR\n\n**SIGNS OF ANAPHYLAXIS:** Difficulty breathing, swelling of face/throat, rapid pulse",
+            'urgency': 'critical'
+        },
+        'unconscious': {
+            'response': "😵 **UNCONSCIOUS PERSON** 😵\n\n**IMMEDIATE ACTIONS:**\n1. Check responsiveness: tap shoulders, shout\n2. Call 119 immediately\n3. Check breathing and pulse\n4. If breathing: recovery position\n5. If not breathing: start CPR\n\n**RECOVERY POSITION:** On side, head tilted back, top leg bent\n**CPR:** 30 chest compressions, 2 rescue breaths, repeat",
+            'urgency': 'critical'
+        },
+        'cpr': {
+            'response': "❤️ **CPR INSTRUCTIONS** ❤️\n\n**STEPS:**\n1. Check responsiveness and breathing\n2. Call 119\n3. Place heel of hand on center of chest\n4. Push hard and fast 2 inches deep\n5. 100-120 compressions per minute\n6. After 30 compressions: 2 rescue breaths\n7. Continue until help arrives\n\n**HAND POSITION:** Between nipples, fingers interlocked\n**DEPTH:** At least 2 inches for adults",
+            'urgency': 'critical'
+        }
+    }
+
+    # Check for emergency keywords
+    for keyword, data in emergency_responses.items():
+        if keyword in message or any(word in message for word in keyword.split()):
+            return data['response']
+
+    # General medical questions
+    if any(word in message for word in ['pain', 'hurt', 'ache']):
+        return "🩺 **PAIN MANAGEMENT** 🩺\n\nFor general pain:\n- Rest the affected area\n- Apply ice for injuries (20 min on/off)\n- Over-the-counter pain relievers if appropriate\n- Seek medical attention if severe or persistent\n\n**WHEN TO CALL 119:** Severe pain, chest pain, abdominal pain with fever, head injury pain"
+
+    if any(word in message for word in ['fever', 'temperature', 'hot']):
+        return "🌡️ **FEVER MANAGEMENT** 🌡️\n\n- Rest and stay hydrated\n- Light clothing\n- Cool compress on forehead\n- Fever reducers if appropriate\n\n**CALL 119 IF:** Fever >104°F (40°C), difficulty breathing, severe headache, stiff neck, confusion"
+
+    if any(word in message for word in ['cut', 'wound', 'injury']):
+        return "🩹 **WOUND CARE** 🩹\n\n**MINOR CUTS:**\n1. Clean hands first\n2. Stop bleeding with pressure\n3. Clean wound with water\n4. Apply antibiotic ointment\n5. Cover with bandage\n\n**SEEK MEDICAL CARE:** Deep cuts, won't stop bleeding, signs of infection, tetanus concerns"
+
+    # Default response
+    return """🤖 **MEDICAL EMERGENCY AI ASSISTANT** 🤖
+
+I can help with emergency medical situations. Try asking about:
+
+🚨 **EMERGENCIES:**
+- Heart attack
+- Choking
+- Severe bleeding
+- Burns
+- Fractures
+- Seizures
+- Poisoning
+- Allergic reactions
+- Unconscious person
+- CPR instructions
+
+🩺 **GENERAL:**
+- Pain management
+- Fever treatment
+- Wound care
+- Basic first aid
+
+**REMEMBER:** For life-threatening emergencies, call 119 immediately!
+
+What medical emergency can I help you with?"""
 
 @app.route('/privacy')
 def privacy():
