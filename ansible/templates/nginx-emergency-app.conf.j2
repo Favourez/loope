@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name localhost {{ ansible_default_ipv4.address }};
+    server_name {{ server_name | default('srv838312.hstgr.cloud') }} {{ ansible_default_ipv4.address | default('93.127.214.57') }};
 
     location / {
         proxy_pass http://127.0.0.1:{{ app_port }};

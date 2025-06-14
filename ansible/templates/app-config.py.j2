@@ -15,9 +15,9 @@ API_KEY = 'emergency-api-key-2024'
 # Email Configuration
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_USER = 'emergency@{{ ansible_domain | default("localhost") }}'
+EMAIL_USER = 'emergency@{{ server_name | default("srv838312.hstgr.cloud") }}'
 EMAIL_PASSWORD = 'your-app-password'
-EMAIL_FROM = 'Emergency Response App <emergency@{{ ansible_domain | default("localhost") }}>'
+EMAIL_FROM = 'Emergency Response App <emergency@{{ server_name | default("srv838312.hstgr.cloud") }}>'
 
 # Monitoring Configuration
 PROMETHEUS_METRICS = True
