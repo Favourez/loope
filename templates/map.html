@@ -6,6 +6,8 @@
 <!-- Leaflet CSS for OpenStreetMap -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<!-- Leaflet Polyline Decorator for arrows -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
 <!-- Custom Map Styles -->
 <style>
 .map-container {
@@ -200,6 +202,40 @@
     padding: 4px 8px;
     font-size: 0.8em;
 }
+
+/* Distance label styles for arrows */
+.distance-label {
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.distance-label div {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    line-height: 1.2;
+}
+
+/* Arrow animation for nearest location */
+@keyframes arrow-pulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1.0; }
+    100% { opacity: 0.8; }
+}
+
+.nearest-arrow {
+    animation: arrow-pulse 2s infinite;
+}
+
+/* Enhanced arrow styles */
+.leaflet-interactive {
+    cursor: pointer;
+}
+
+.leaflet-interactive:hover {
+    opacity: 0.9;
+}
 </style>
 {% endblock %}
 
@@ -334,8 +370,8 @@
                     </div>
 
                     <div class="text-center">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="clearRoute()">
-                            <i class="fas fa-times me-1"></i>Clear Route
+                        <button class="btn btn-sm btn-outline-secondary" onclick="clearAllRoutes()">
+                            <i class="fas fa-times me-1"></i>Clear Arrows
                         </button>
                         <button class="btn btn-sm btn-outline-primary" onclick="showGraphInfo()">
                             <i class="fas fa-info-circle me-1"></i>Graph Info
@@ -433,6 +469,8 @@ let mapEmergencyMarkers = [];
 let mapHospitalMarkers = [];
 let mapStationMarkers = [];
 let mapUserMarker = null;
+let mapRouteArrows = [];
+let mapDistanceLabels = [];
 
 // Cameroon coordinates (centered on Yaoundé)
 const CAMEROON_CENTER = [3.8480, 11.5021]; // [lat, lng] for Leaflet
@@ -1164,15 +1202,19 @@ class DijkstraPathfinder {
 
     // Find shortest path using Dijkstra's algorithm
     findShortestPath(startNode, targetType = 'hospital') {
+        console.log(`🔍 Running Dijkstra's algorithm from ${startNode} to find ${targetType}s`);
+
         // Initialize distances
         for (let node of this.graph.keys()) {
             this.distances.set(node, Infinity);
             this.previous.set(node, null);
         }
         this.distances.set(startNode, 0);
+        this.visited.clear();
 
         // Priority queue (using array for simplicity)
         const unvisited = Array.from(this.graph.keys());
+        console.log(`📊 Graph has ${unvisited.length} nodes`);
 
         while (unvisited.length > 0) {
             // Find node with minimum distance
@@ -1180,14 +1222,16 @@ class DijkstraPathfinder {
                 this.distances.get(node) < this.distances.get(min) ? node : min
             );
 
+            // If current node distance is infinity, we're done
+            if (this.distances.get(currentNode) === Infinity) {
+                break;
+            }
+
             // Remove from unvisited
             unvisited.splice(unvisited.indexOf(currentNode), 1);
             this.visited.add(currentNode);
 
-            // If we reached a target node, we can stop
-            if (currentNode.startsWith(targetType)) {
-                break;
-            }
+            console.log(`🔄 Processing node: ${currentNode}, distance: ${this.distances.get(currentNode).toFixed(2)}km`);
 
             // Update distances to neighbors
             const neighbors = this.graph.get(currentNode);
@@ -1198,17 +1242,20 @@ class DijkstraPathfinder {
                         if (newDistance < this.distances.get(neighbor)) {
                             this.distances.set(neighbor, newDistance);
                             this.previous.set(neighbor, currentNode);
+                            console.log(`📏 Updated ${neighbor}: ${newDistance.toFixed(2)}km`);
                         }
                     }
                 }
             }
         }
 
+        console.log('✅ Dijkstra\'s algorithm completed');
         return this.getOptimalTargets(targetType);
     }
 
     // Get optimal targets sorted by distance and other factors
     getOptimalTargets(targetType) {
+        console.log(`🎯 Getting optimal ${targetType}s from Dijkstra results`);
         const targets = [];
 
         for (let [node, distance] of this.distances) {
@@ -1224,22 +1271,30 @@ class DijkstraPathfinder {
                         distance: distance,
                         path: this.reconstructPath(node)
                     });
+                    console.log(`📍 Found ${data.name}: ${distance.toFixed(2)}km`);
                 }
             }
         }
 
-        // Sort by multiple criteria
+        console.log(`📊 Found ${targets.length} reachable ${targetType}s`);
+
+        // Sort by distance first (Dijkstra's shortest path), then by other criteria
         return targets.sort((a, b) => {
+            // Primary sort: distance (shortest first)
+            const distanceDiff = a.distance - b.distance;
+            if (Math.abs(distanceDiff) > 0.1) { // 100m difference threshold
+                return distanceDiff;
+            }
+
+            // Secondary sort: specific criteria for each type
             if (targetType === 'hospital') {
-                // For hospitals: prioritize emergency capability, then distance, then rating
+                // For hospitals: emergency capability, then rating
                 if (a.emergency !== b.emergency) return b.emergency - a.emergency;
-                if (Math.abs(a.distance - b.distance) > 1) return a.distance - b.distance;
                 return b.rating - a.rating;
             } else {
-                // For fire stations: prioritize operational status, vehicles, then distance
+                // For fire stations: operational status, then vehicles
                 if (a.operational !== b.operational) return b.operational - a.operational;
-                if (Math.abs(a.vehicles - b.vehicles) > 2) return b.vehicles - a.vehicles;
-                return a.distance - b.distance;
+                return b.vehicles - a.vehicles;
             }
         });
     }
@@ -1416,79 +1471,139 @@ function searchLocation() {
 
 // Smart pathfinding functions using Dijkstra's algorithm
 function findOptimalHospitals(criteria = 'distance') {
+    console.log(`🏥 Finding optimal hospitals by ${criteria}...`);
+
+    // Check if user location is available
     if (!mapUserLocation) {
-        showErrorToast('Please get your location first by clicking "My Location" button.');
+        showErrorToast('Getting your location first...');
+        // Try to get location automatically
+        getCurrentLocationForPathfinding(() => {
+            findOptimalHospitals(criteria);
+        });
         return;
     }
 
-    console.log(`Finding optimal hospitals by ${criteria}...`);
+    console.log('User location available:', mapUserLocation);
+    console.log('Building graph with hospitals...');
 
-    // Build graph and find optimal paths
+    // Build graph and find optimal paths using Dijkstra's algorithm
     const userNode = pathfinder.buildGraph(mapUserLocation, hospitalData, stationData);
+    console.log('Graph built, finding shortest paths...');
+
     const optimalHospitals = pathfinder.findShortestPath(userNode, 'hospital');
+    console.log('Optimal hospitals found:', optimalHospitals.length);
 
     // Apply additional criteria
     let sortedHospitals;
     if (criteria === 'emergency') {
         sortedHospitals = optimalHospitals.filter(h => h.emergency).slice(0, 5);
+        console.log('Filtered for emergency hospitals:', sortedHospitals.length);
     } else {
         sortedHospitals = optimalHospitals.slice(0, 5);
+        console.log('Top 5 hospitals by distance:', sortedHospitals.length);
     }
 
-    // Clear existing hospital markers
-    clearHospitalMarkers();
+    if (sortedHospitals.length === 0) {
+        showErrorToast('No hospitals found. Please try again.');
+        return;
+    }
 
-    // Add optimal hospital markers with routes
+    // Clear existing hospital markers and routes
+    clearHospitalMarkers();
+    clearAllRoutes();
+
+    // Add optimal hospital markers with arrows to ALL hospitals
     sortedHospitals.forEach((hospital, index) => {
+        console.log(`Adding hospital #${index + 1}: ${hospital.name} (${hospital.distance.toFixed(2)}km)`);
         addHospitalMarker(hospital, index + 1);
-        if (index === 0) {
-            // Draw route to closest hospital
-            drawRoute(mapUserLocation, hospital, 'hospital');
-        }
+
+        // Draw arrow to each hospital with distance label
+        const isNearest = index === 0;
+        drawArrowWithDistance(mapUserLocation, hospital, 'hospital', isNearest);
     });
 
     // Show results panel
     showOptimalResultsPanel(sortedHospitals, 'hospitals', criteria);
 
-    showSuccessToast(`Found ${sortedHospitals.length} optimal hospitals using Dijkstra's algorithm!`);
+    // Fit map to show all hospitals and user location
+    if (sortedHospitals.length > 0) {
+        const bounds = L.latLngBounds();
+        bounds.extend([mapUserLocation.lat, mapUserLocation.lng]);
+        sortedHospitals.forEach(hospital => {
+            bounds.extend([hospital.coordinates[0], hospital.coordinates[1]]);
+        });
+        mapInstance.fitBounds(bounds, { padding: [20, 20] });
+    }
+
+    showSuccessToast(`✅ Found ${sortedHospitals.length} hospitals with arrows! Nearest: ${sortedHospitals[0].name} (${sortedHospitals[0].distance.toFixed(2)}km)`);
 }
 
 function findOptimalStations(criteria = 'distance') {
+    console.log(`🚒 Finding optimal fire stations by ${criteria}...`);
+
+    // Check if user location is available
     if (!mapUserLocation) {
-        showErrorToast('Please get your location first by clicking "My Location" button.');
+        showErrorToast('Getting your location first...');
+        // Try to get location automatically
+        getCurrentLocationForPathfinding(() => {
+            findOptimalStations(criteria);
+        });
         return;
     }
 
-    console.log(`Finding optimal fire stations by ${criteria}...`);
+    console.log('User location available:', mapUserLocation);
+    console.log('Building graph with fire stations...');
 
-    // Build graph and find optimal paths
+    // Build graph and find optimal paths using Dijkstra's algorithm
     const userNode = pathfinder.buildGraph(mapUserLocation, hospitalData, stationData);
+    console.log('Graph built, finding shortest paths...');
+
     const optimalStations = pathfinder.findShortestPath(userNode, 'station');
+    console.log('Optimal fire stations found:', optimalStations.length);
 
     // Apply additional criteria
     let sortedStations;
     if (criteria === 'vehicles') {
         sortedStations = optimalStations.sort((a, b) => b.vehicles - a.vehicles).slice(0, 5);
+        console.log('Sorted by vehicle count:', sortedStations.length);
     } else {
         sortedStations = optimalStations.slice(0, 5);
+        console.log('Top 5 stations by distance:', sortedStations.length);
     }
 
-    // Clear existing station markers
-    clearStationMarkers();
+    if (sortedStations.length === 0) {
+        showErrorToast('No fire stations found. Please try again.');
+        return;
+    }
 
-    // Add optimal station markers with routes
+    // Clear existing station markers and routes
+    clearStationMarkers();
+    clearAllRoutes();
+
+    // Add optimal station markers with arrows to ALL stations
     sortedStations.forEach((station, index) => {
+        console.log(`Adding station #${index + 1}: ${station.name} (${station.distance.toFixed(2)}km)`);
         addFireStationMarker(station, index + 1);
-        if (index === 0) {
-            // Draw route to closest station
-            drawRoute(mapUserLocation, station, 'station');
-        }
+
+        // Draw arrow to each station with distance label
+        const isNearest = index === 0;
+        drawArrowWithDistance(mapUserLocation, station, 'station', isNearest);
     });
 
     // Show results panel
     showOptimalResultsPanel(sortedStations, 'stations', criteria);
 
-    showSuccessToast(`Found ${sortedStations.length} optimal fire stations using Dijkstra's algorithm!`);
+    // Fit map to show all stations and user location
+    if (sortedStations.length > 0) {
+        const bounds = L.latLngBounds();
+        bounds.extend([mapUserLocation.lat, mapUserLocation.lng]);
+        sortedStations.forEach(station => {
+            bounds.extend([station.coordinates[0], station.coordinates[1]]);
+        });
+        mapInstance.fitBounds(bounds, { padding: [20, 20] });
+    }
+
+    showSuccessToast(`✅ Found ${sortedStations.length} fire stations with arrows! Nearest: ${sortedStations[0].name} (${sortedStations[0].distance.toFixed(2)}km)`);
 }
 
 function findNearestHospital() {
@@ -1497,6 +1612,91 @@ function findNearestHospital() {
 
 function findFireStation() {
     findOptimalStations('distance');
+}
+
+// Helper function to get location automatically for pathfinding
+function getCurrentLocationForPathfinding(callback) {
+    if (!navigator.geolocation) {
+        showErrorToast('Geolocation is not supported by this browser.');
+        return;
+    }
+
+    console.log('🌍 Getting user location for pathfinding...');
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            mapUserLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                accuracy: position.coords.accuracy
+            };
+
+            console.log('✅ Location obtained for pathfinding:', mapUserLocation);
+
+            // Remove existing user marker if any
+            if (mapUserMarker) {
+                mapInstance.removeLayer(mapUserMarker);
+            }
+
+            // Create custom user location icon
+            const userIcon = L.divIcon({
+                className: 'user-location-marker',
+                html: '<i class="fas fa-user" style="color: white; font-size: 14px;"></i>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+                popupAnchor: [0, -15]
+            });
+
+            // Add user marker to map
+            mapUserMarker = L.marker([mapUserLocation.lat, mapUserLocation.lng], {
+                icon: userIcon
+            }).addTo(mapInstance);
+
+            // Create popup content
+            const popupContent = `
+                <div class="popup-title">Your Location</div>
+                <div class="popup-details">
+                    <strong>Coordinates:</strong> ${mapUserLocation.lat.toFixed(6)}, ${mapUserLocation.lng.toFixed(6)}<br>
+                    <strong>Accuracy:</strong> ±${Math.round(mapUserLocation.accuracy)} meters
+                </div>
+            `;
+
+            mapUserMarker.bindPopup(popupContent);
+
+            showSuccessToast('📍 Location detected! Finding optimal routes...');
+
+            // Execute callback function
+            if (callback) {
+                callback();
+            }
+        },
+        function(error) {
+            console.error('❌ Location error:', error.message);
+
+            let errorMessage = 'Could not get your location. ';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage += 'Please allow location access and try again.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage += 'Location information is unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage += 'Location request timed out. Please try again.';
+                    break;
+                default:
+                    errorMessage += 'Please try clicking "My Location" button first.';
+                    break;
+            }
+
+            showErrorToast(errorMessage);
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
+        }
+    );
 }
 
 // Enhanced marker functions
@@ -3060,6 +3260,7 @@ function clearHospitalMarkers() {
         mapInstance.removeLayer(marker);
     });
     mapHospitalMarkers = [];
+    clearAllRoutes(); // Also clear arrows when clearing markers
 }
 
 function clearStationMarkers() {
@@ -3067,6 +3268,7 @@ function clearStationMarkers() {
         mapInstance.removeLayer(marker);
     });
     mapStationMarkers = [];
+    clearAllRoutes(); // Also clear arrows when clearing markers
 }
 
 function clearRoute() {
@@ -3076,6 +3278,110 @@ function clearRoute() {
         window.currentRoute = null;
     }
     showInfoToast('Route cleared');
+}
+
+function clearAllRoutes() {
+    // Clear all route arrows
+    mapRouteArrows.forEach(arrow => {
+        mapInstance.removeLayer(arrow);
+    });
+    mapRouteArrows = [];
+
+    // Clear all distance labels
+    mapDistanceLabels.forEach(label => {
+        mapInstance.removeLayer(label);
+    });
+    mapDistanceLabels = [];
+
+    // Clear single route if exists
+    clearRoute();
+}
+
+function drawArrowWithDistance(start, destination, type, isNearest = false) {
+    const startCoords = [start.lat, start.lng];
+    const endCoords = [destination.coordinates[0], destination.coordinates[1]];
+
+    // Choose colors based on type and if it's nearest
+    let arrowColor, arrowWeight, arrowOpacity;
+    if (isNearest) {
+        arrowColor = type === 'hospital' ? '#dc3545' : '#ff6b35'; // Red/Orange for nearest
+        arrowWeight = 5;
+        arrowOpacity = 1.0;
+    } else {
+        arrowColor = type === 'hospital' ? '#17a2b8' : '#ffc107'; // Blue/Yellow for others
+        arrowWeight = 3;
+        arrowOpacity = 0.7;
+    }
+
+    // Create arrow polyline
+    const arrow = L.polyline([startCoords, endCoords], {
+        color: arrowColor,
+        weight: arrowWeight,
+        opacity: arrowOpacity,
+        dashArray: isNearest ? null : '10, 5' // Solid line for nearest, dashed for others
+    }).addTo(mapInstance);
+
+    // Add arrowhead at the end
+    const arrowHead = L.polylineDecorator(arrow, {
+        patterns: [{
+            offset: '100%',
+            repeat: 0,
+            symbol: L.Symbol.arrowHead({
+                pixelSize: isNearest ? 15 : 12,
+                polygon: false,
+                pathOptions: {
+                    stroke: true,
+                    weight: 2,
+                    color: arrowColor,
+                    opacity: arrowOpacity
+                }
+            })
+        }]
+    });
+
+    // Add to map if decorator is available, otherwise just use the line
+    if (typeof L.polylineDecorator !== 'undefined') {
+        arrowHead.addTo(mapInstance);
+        mapRouteArrows.push(arrowHead);
+    }
+    mapRouteArrows.push(arrow);
+
+    // Calculate midpoint for distance label
+    const midLat = (startCoords[0] + endCoords[0]) / 2;
+    const midLng = (startCoords[1] + endCoords[1]) / 2;
+
+    // Create distance label
+    const distance = destination.distance.toFixed(2);
+    const labelText = isNearest ? `${distance}km\nNEAREST` : `${distance}km`;
+
+    const distanceLabel = L.marker([midLat, midLng], {
+        icon: L.divIcon({
+            className: 'distance-label',
+            html: `
+                <div style="
+                    background: ${isNearest ? '#dc3545' : '#ffffff'};
+                    color: ${isNearest ? '#ffffff' : '#333333'};
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    font-size: 11px;
+                    font-weight: ${isNearest ? 'bold' : 'normal'};
+                    text-align: center;
+                    border: 2px solid ${arrowColor};
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    white-space: pre-line;
+                    min-width: 50px;
+                ">
+                    ${labelText}
+                </div>
+            `,
+            iconSize: [60, isNearest ? 35 : 25],
+            iconAnchor: [30, isNearest ? 17 : 12]
+        })
+    }).addTo(mapInstance);
+
+    mapDistanceLabels.push(distanceLabel);
+
+    console.log(`🏹 Drew arrow to ${destination.name}: ${distance}km ${isNearest ? '(NEAREST)' : ''}`);
 }
 
 function drawRoute(start, destination, type) {
