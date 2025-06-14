@@ -33,6 +33,18 @@ A comprehensive Emergency Response Application for Cameroon with dual user regis
 
 ## 🚀 Quick Start
 
+### Installation
+```bash
+# Clone or download the project
+cd emergency-response-app
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Initialize database (first time only)
+python -c "from database import init_database; init_database()"
+```
+
 ### Local Development
 ```bash
 # Start the application
@@ -354,26 +366,39 @@ emergency-response-app/
 ├── database.py                     # Database operations
 ├── auth.py                         # Authentication system
 ├── api_endpoints.py                # RESTful API endpoints
+├── emergency_app.db                # SQLite database
+├── requirements.txt                # Python dependencies
 ├── templates/                      # HTML templates
-│   ├── base.html
-│   ├── landing.html
-│   ├── first_aid.html
-│   ├── medical_chatbot.html
-│   └── ...
-├── static/                         # CSS, JS, images
-├── monitoring/                     # Prometheus/Grafana configs
-│   ├── prometheus.yml
-│   ├── grafana/
-│   └── ...
+│   ├── base.html                   # Base template
+│   ├── landing.html                # Main landing page
+│   ├── fire_department_landing.html # Fire dept dashboard
+│   ├── first_aid.html              # First aid practices
+│   ├── first_aid_detail.html       # Detailed first aid guide
+│   ├── medical_chatbot.html        # AI medical assistant
+│   ├── map.html                    # Enhanced map with pathfinding
+│   ├── messages.html               # Community messaging
+│   ├── profile.html                # User profile management
+│   └── ...                        # Other templates
+├── static/                         # Static assets
+│   ├── css/                        # Stylesheets
+│   ├── js/                         # JavaScript files
+│   ├── images/                     # Images and icons
+│   └── videos/                     # Video content
+├── monitoring/                     # Monitoring configuration
+│   ├── prometheus.yml              # Prometheus config
+│   ├── alertmanager.yml            # Alert manager config
+│   ├── alert_rules.yml             # Alert rules
+│   └── grafana/                    # Grafana dashboards
 ├── ansible/                        # Infrastructure as Code
-│   ├── site.yml
-│   ├── playbook-install-packages.yml
-│   ├── playbook-deploy-services.yml
-│   └── templates/
+│   ├── site.yml                    # Master playbook
+│   ├── playbook-install-packages.yml # Package installation
+│   ├── playbook-deploy-services.yml  # Service deployment
+│   ├── inventory.yml               # Server inventory
+│   ├── ansible.cfg                 # Ansible configuration
+│   └── templates/                  # Configuration templates
 ├── docker-compose.monitoring.yml   # Monitoring stack
-├── Emergency_Response_API.postman_collection.json
-├── API_DOCUMENTATION.md           # Detailed API docs
-└── README.md                      # This file
+├── Emergency_Response_API.postman_collection.json # API testing
+└── README.md                       # Complete documentation
 ```
 
 ---
