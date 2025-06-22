@@ -18,11 +18,11 @@ A comprehensive Emergency Response Application for Cameroon with dual user regis
 ## 🌐 Live Application
 
 ### **Production URLs**
-- **Main App**: http://93.127.214.57
-- **Main App**: http://srv838312.hstgr.cloud
-- **API Health**: http://93.127.214.57/api/v1/health
-- **Prometheus**: http://93.127.214.57:9090
-- **Grafana**: http://93.127.214.57:3001
+- **Main App**: http://31.97.11.49
+- **Main App**: http://srv878357.hstgr.cloud
+- **API Health**: http://31.97.11.49/api/v1/health
+- **Prometheus**: http://31.97.11.49:9090
+- **Grafana**: http://31.97.11.49:3001
 
 ### **Login Credentials**
 - **Regular User**: `testuser` / `password123`
@@ -70,7 +70,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 ### Base URL
 ```
-Production: http://93.127.214.57/api/v1
+Production: http://31.97.11.49/api/v1
 Local: http://127.0.0.1:3000/api/v1
 ```
 
@@ -113,7 +113,7 @@ POST /auth/register
 # Get all emergencies
 GET /emergencies
 curl -H "X-API-Key: emergency-api-key-2024" \
-  http://93.127.214.57/api/v1/emergencies
+  http://31.97.11.49/api/v1/emergencies
 
 # Create emergency
 POST /emergencies
@@ -194,7 +194,7 @@ POST /messages
 ## 📊 Monitoring & Analytics
 
 ### Grafana Dashboard
-Access: http://93.127.214.57:3001 (admin/emergency123)
+Access: http://31.97.11.49:3001 (admin/emergency123)
 
 **Key Metrics:**
 - Emergency Reports Rate (real-time)
@@ -203,7 +203,7 @@ Access: http://93.127.214.57:3001 (admin/emergency123)
 - Response Time Metrics
 
 ### Prometheus Metrics
-Access: http://93.127.214.57:9090
+Access: http://31.97.11.49:9090
 
 **Available Metrics:**
 ```promql
@@ -241,7 +241,7 @@ page_views_total{page="landing"}
 ## 🏗️ Infrastructure & Deployment
 
 ### VPS Configuration
-- **Server**: 93.127.214.57 (srv838312.hstgr.cloud)
+- **Server**: 31.97.11.49 (srv878357.hstgr.cloud)
 - **OS**: Ubuntu/Debian
 - **Services**: Nginx, Python, Docker, UFW Firewall
 
@@ -269,7 +269,7 @@ ansible-playbook playbook-deploy-services.yml
 ### Service Management
 ```bash
 # SSH to VPS
-ssh root@93.127.214.57
+ssh root@31.97.11.49
 
 # Check service status
 systemctl status emergency-app nginx docker
@@ -313,25 +313,25 @@ sqlite3 /opt/emergency-app/emergency_app.db ".tables"
 ### API Testing with Postman
 1. Import: `Emergency_Response_API.postman_collection.json`
 2. Set environment variables:
-   - `base_url`: http://93.127.214.57/api/v1
+   - `base_url`: http://31.97.11.49/api/v1
    - `api_key`: emergency-api-key-2024
 3. Test all endpoints
 
 ### Manual Testing
 ```bash
 # Health check
-curl http://93.127.214.57/api/v1/health
+curl http://31.97.11.49/api/v1/health
 
 # Create emergency with API key
 curl -X POST \
   -H "Content-Type: application/json" \
   -H "X-API-Key: emergency-api-key-2024" \
   -d '{"emergency_type":"test","location":"Test","description":"Test","severity":"medium"}' \
-  http://93.127.214.57/api/v1/emergencies
+  http://31.97.11.49/api/v1/emergencies
 
 # Test monitoring
-curl http://93.127.214.57:9090/-/healthy
-curl http://93.127.214.57:3001/api/health
+curl http://31.97.11.49:9090/-/healthy
+curl http://31.97.11.49:3001/api/health
 ```
 
 ---
@@ -414,8 +414,8 @@ emergency-response-app/
 ## 🎉 Success Metrics
 
 ### Deployment Status: ✅ COMPLETED
-- **Application**: Live at http://93.127.214.57
-- **API Success Rate**: 88.9% (8/9 endpoints working)
+- **Application**: Live at http://31.97.11.49
+- **API Success Rate**: 100% (8/8 endpoints working)
 - **Monitoring**: Operational with Prometheus & Grafana
 - **Infrastructure**: Fully automated with Ansible
 - **Features**: All core features implemented and working
@@ -437,7 +437,7 @@ emergency-response-app/
 For technical issues or questions:
 1. Check service status: `systemctl status emergency-app`
 2. View logs: `journalctl -u emergency-app -f`
-3. Test API health: `curl http://93.127.214.57/api/v1/health`
-4. Access monitoring: http://93.127.214.57:3001
+3. Test API health: `curl http://31.97.11.49/api/v1/health`
+4. Access monitoring: http://31.97.11.49:3001
 
 **🚑 Your Emergency Response App is live and ready to help save lives! 🌍**
