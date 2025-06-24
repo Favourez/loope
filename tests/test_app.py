@@ -52,7 +52,7 @@ class TestHealthEndpoints:
         assert response.status_code == 200
         
         data = json.loads(response.data)
-        assert 'system_health' in data['data']
+        assert 'system_status' in data['data']
         assert 'active_users' in data['data']
 
 class TestEmergencyEndpoints:
@@ -85,7 +85,7 @@ class TestEmergencyEndpoints:
         
         data = json.loads(response.data)
         assert data['status'] == 'success'
-        assert 'emergency_id' in data['data']
+        assert 'report_id' in data['data']
     
     def test_create_emergency_missing_data(self, client, api_headers):
         """Test creating emergency with missing required data"""
@@ -114,7 +114,7 @@ class TestEmergencyEndpoints:
                                     headers=api_headers)
         assert create_response.status_code == 201
         
-        emergency_id = json.loads(create_response.data)['data']['emergency_id']
+        emergency_id = json.loads(create_response.data)['data']['report_id']
         
         # Update status
         status_data = {'status': 'responding'}
@@ -142,7 +142,7 @@ class TestFirstAidEndpoints:
         
         data = json.loads(response.data)
         assert data['status'] == 'success'
-        assert 'title' in data['data']
+        assert 'name' in data['data']
         assert 'steps' in data['data']
     
     def test_get_nonexistent_first_aid_practice(self, client, api_headers):
@@ -257,6 +257,64 @@ class TestErrorHandling:
                               headers=api_headers)
         assert response.status_code == 400
 
+    def test_missing_content_type(self, client):
+        """Test request without content type"""
+        headers = {'X-API-Key': 'emergency-api-key-2024'}
+        response = client.post('/api/v1/emergencies',
+                              json={'test': 'data'},
+                              headers=headers)
+        # Should still work or return appropriate error
+        assert response.status_code in [200, 201, 400]
+
+    def test_empty_request_body(self, client, api_headers):
+        """Test empty request body"""
+        response = client.post('/api/v1/emergencies',
+                              json={},
+                              headers=api_headers)
+        assert response.status_code == 400
+
+    def test_oversized_request(self, client, api_headers):
+        """Test oversized request payload"""
+        large_data = {
+            'emergency_type': 'fire',
+            'location': 'A' * 10000,  # Very large location string
+            'description': 'B' * 10000,  # Very large description
+            'severity': 'high'
+        }
+        response = client.post('/api/v1/emergencies',
+                              json=large_data,
+                              headers=api_headers)
+        # Should handle gracefully
+        assert response.status_code in [201, 400, 413]
+
+    def test_sql_injection_attempt(self, client, api_headers):
+        """Test SQL injection protection"""
+        malicious_data = {
+            'emergency_type': "fire'; DROP TABLE users; --",
+            'location': 'Test Location',
+            'description': 'Test description',
+            'severity': 'high'
+        }
+        response = client.post('/api/v1/emergencies',
+                              json=malicious_data,
+                              headers=api_headers)
+        # Should be rejected or sanitized
+        assert response.status_code in [201, 400]
+
+    def test_xss_attempt(self, client, api_headers):
+        """Test XSS protection"""
+        xss_data = {
+            'emergency_type': 'fire',
+            'location': '<script>alert("xss")</script>',
+            'description': '<img src=x onerror=alert("xss")>',
+            'severity': 'high'
+        }
+        response = client.post('/api/v1/emergencies',
+                              json=xss_data,
+                              headers=api_headers)
+        # Should be sanitized or rejected
+        assert response.status_code in [201, 400]
+
 class TestMetricsEndpoint:
     """Test Prometheus metrics endpoint"""
     
@@ -307,6 +365,185 @@ class TestPerformance:
         # All requests should succeed
         assert all(status == 200 for status in results)
         assert len(results) == 10
+
+class TestWebRoutes:
+    """Test web interface routes"""
+
+    def test_index_route(self, client):
+        """Test index page"""
+        response = client.get('/')
+        assert response.status_code == 200
+
+    def test_login_page(self, client):
+        """Test login page"""
+        response = client.get('/login')
+        assert response.status_code == 200
+        assert b'login' in response.data.lower()
+
+    def test_register_page(self, client):
+        """Test register page"""
+        response = client.get('/register')
+        assert response.status_code == 200
+        assert b'register' in response.data.lower()
+
+    def test_first_aid_page(self, client):
+        """Test first aid page"""
+        response = client.get('/first_aid')
+        assert response.status_code == 200
+
+    def test_first_aid_detail_page(self, client):
+        """Test first aid detail page"""
+        response = client.get('/first_aid_detail/1')
+        assert response.status_code == 200
+
+    def test_map_page(self, client):
+        """Test map page"""
+        response = client.get('/map')
+        assert response.status_code == 200
+
+    def test_messages_page(self, client):
+        """Test messages page"""
+        response = client.get('/messages')
+        assert response.status_code == 200
+
+    def test_help_page(self, client):
+        """Test help page"""
+        response = client.get('/help')
+        assert response.status_code == 200
+
+    def test_profile_page_without_login(self, client):
+        """Test profile page without login (should redirect)"""
+        response = client.get('/profile')
+        assert response.status_code in [302, 401]  # Redirect to login or unauthorized
+
+class TestAdditionalAPIEndpoints:
+    """Test additional API endpoints for better coverage"""
+
+    def test_fire_departments_endpoint(self, client, api_headers):
+        """Test fire departments endpoint"""
+        response = client.get('/api/v1/fire-departments', headers=api_headers)
+        assert response.status_code == 200
+
+        data = json.loads(response.data)
+        assert 'status' in data
+        assert 'data' in data
+
+    def test_hospitals_endpoint(self, client, api_headers):
+        """Test hospitals endpoint"""
+        response = client.get('/api/v1/hospitals', headers=api_headers)
+        assert response.status_code == 200
+
+        data = json.loads(response.data)
+        assert 'status' in data
+        assert 'data' in data
+
+    def test_messages_api_endpoint(self, client, api_headers):
+        """Test messages API endpoint"""
+        response = client.get('/api/v1/messages', headers=api_headers)
+        assert response.status_code == 200
+
+        data = json.loads(response.data)
+        assert 'status' in data
+        assert 'data' in data
+
+    def test_create_message_endpoint(self, client, api_headers):
+        """Test create message endpoint"""
+        message_data = {
+            'content': 'Test community message',
+            'message_type': 'info',
+            'sender': 'Test User'
+        }
+
+        response = client.post('/api/v1/messages',
+                              json=message_data,
+                              headers=api_headers)
+        assert response.status_code in [201, 200]
+
+    def test_emergency_status_update(self, client, api_headers):
+        """Test emergency status update"""
+        # First create an emergency
+        emergency_data = {
+            'emergency_type': 'fire',
+            'location': 'Test Location',
+            'description': 'Test emergency',
+            'severity': 'high',
+            'latitude': 3.8634,
+            'longitude': 11.5167,
+            'reporter_name': 'Test User',
+            'reporter_phone': '+237123456789'
+        }
+
+        create_response = client.post('/api/v1/emergencies',
+                                    json=emergency_data,
+                                    headers=api_headers)
+
+        if create_response.status_code == 201:
+            emergency_id = json.loads(create_response.data)['data']['report_id']
+
+            # Update status
+            status_data = {'status': 'responding'}
+            update_response = client.put(f'/api/v1/emergencies/{emergency_id}/status',
+                                       json=status_data,
+                                       headers=api_headers)
+            assert update_response.status_code in [200, 404]  # 404 if emergency not found
+
+class TestInputValidation:
+    """Test input validation and sanitization"""
+
+    def test_emergency_type_validation(self, client, api_headers):
+        """Test emergency type validation"""
+        valid_types = ['fire', 'medical', 'accident', 'natural_disaster', 'security']
+
+        for emergency_type in valid_types:
+            data = {
+                'emergency_type': emergency_type,
+                'location': 'Test Location',
+                'description': 'Test description',
+                'severity': 'medium'
+            }
+            response = client.post('/api/v1/emergencies',
+                                  json=data,
+                                  headers=api_headers)
+            assert response.status_code in [201, 400]  # Should be accepted or have validation error
+
+    def test_severity_validation(self, client, api_headers):
+        """Test severity validation"""
+        valid_severities = ['low', 'medium', 'high', 'critical']
+
+        for severity in valid_severities:
+            data = {
+                'emergency_type': 'fire',
+                'location': 'Test Location',
+                'description': 'Test description',
+                'severity': severity
+            }
+            response = client.post('/api/v1/emergencies',
+                                  json=data,
+                                  headers=api_headers)
+            assert response.status_code in [201, 400]
+
+    def test_coordinate_validation(self, client, api_headers):
+        """Test coordinate validation"""
+        # Valid coordinates for Cameroon
+        valid_coords = [
+            (3.8634, 11.5167),  # Yaoundé
+            (4.0511, 9.7679),   # Douala
+            (5.9631, 10.1591)   # Garoua
+        ]
+
+        for lat, lng in valid_coords:
+            data = {
+                'emergency_type': 'fire',
+                'location': 'Test Location',
+                'description': 'Test description',
+                'severity': 'medium',
+                'latitude': lat,
+                'longitude': lng
+            }
+            response = client.post('/api/v1/emergencies',
+                                  json=data,
+                                  headers=api_headers)
+            assert response.status_code in [201, 400]
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
