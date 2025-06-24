@@ -21,12 +21,14 @@ A comprehensive Emergency Response Application for Cameroon with dual user regis
 - **Main App**: http://31.97.11.49
 - **Main App**: http://srv878357.hstgr.cloud
 - **API Health**: http://31.97.11.49/api/v1/health
+- **Jenkins CI/CD**: http://31.97.11.49:8080
 - **Prometheus**: http://31.97.11.49:9090
 - **Grafana**: http://31.97.11.49:3001
 
 ### **Login Credentials**
 - **Regular User**: `testuser` / `password123`
 - **Fire Department**: `fireuser` / `password123`
+- **Jenkins**: `nopole` / `Software-2025`
 - **Grafana**: `admin` / `emergency123` (or `admin` / `admin`)
 
 ---
@@ -424,6 +426,7 @@ emergency-response-app/
 ├── SETUP_GUIDE.md                  # 📖 Setup script documentation
 ├── Jenkinsfile                     # 🔄 Jenkins CI/CD pipeline
 ├── CI_CD_SETUP.md                  # 📋 CI/CD documentation
+├── JENKINS_SETUP_GUIDE.md          # 🔧 Jenkins configuration guide
 ├── app.py                          # Main Flask application
 ├── database.py                     # Database operations
 ├── auth.py                         # Authentication system
