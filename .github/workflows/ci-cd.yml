@@ -1,0 +1,424 @@
+name: 🚀 Emergency Response App CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+        - skip
+      run_security_scan:
+        description: 'Run security scan'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  APP_NAME: emergency-response-app
+  PYTHON_VERSION: '3.12'
+  PROD_SERVER: '31.97.11.49'
+  STAGING_SERVER: 'staging.srv878357.hstgr.cloud'
+
+jobs:
+  # Code Quality and Testing
+  test:
+    name: 🧪 Test & Quality Check
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: 📦 Cache Dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: 🔧 Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov flake8 bandit safety black isort
+        
+    - name: 🎨 Code Formatting Check
+      run: |
+        black --check --diff .
+        isort --check-only --diff .
+        
+    - name: 🔍 Lint Code
+      run: |
+        flake8 --max-line-length=120 --exclude=venv,__pycache__ .
+        
+    - name: 🔒 Security Scan
+      if: ${{ github.event.inputs.run_security_scan == 'true' || github.event_name != 'workflow_dispatch' }}
+      run: |
+        safety check --json --output safety-report.json || true
+        bandit -r . -f json -o bandit-report.json || true
+        
+    - name: 🧪 Run Unit Tests
+      run: |
+        export FLASK_ENV=testing
+        python -c "from database import init_database; init_database()"
+        pytest tests/test_app.py --cov=. --cov-report=xml --cov-report=html --junitxml=test-results.xml
+        
+    - name: 📊 Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        
+    - name: 📋 Upload Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.python-version }}
+        path: |
+          test-results.xml
+          htmlcov/
+          *-report.json
+
+  # Build Application
+  build:
+    name: 🏗️ Build Application
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: 🏗️ Build Application Package
+      run: |
+        mkdir -p build
+        cp -r *.py templates static monitoring ansible requirements.txt build/
+        cp setup.sh docker-compose.monitoring.yml build/
+        echo "${{ github.run_number }}" > build/VERSION
+        echo "${{ github.sha }}" > build/COMMIT
+        echo "$(date -u +%Y%m%d-%H%M%S)" > build/BUILD_DATE
+        tar -czf ${{ env.APP_NAME }}-${{ github.run_number }}.tar.gz -C build .
+        
+    - name: 📦 Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: application-package
+        path: ${{ env.APP_NAME }}-${{ github.run_number }}.tar.gz
+
+  # Docker Build
+  docker:
+    name: 🐳 Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 🔑 Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: 🏗️ Create Dockerfile
+      run: |
+        cat > Dockerfile << 'EOF'
+        FROM python:3.12-slim
+        
+        WORKDIR /app
+        
+        # Install system dependencies
+        RUN apt-get update && apt-get install -y \
+            gcc \
+            curl \
+            && rm -rf /var/lib/apt/lists/*
+        
+        # Copy requirements and install Python dependencies
+        COPY requirements.txt .
+        RUN pip install --no-cache-dir -r requirements.txt
+        
+        # Copy application code
+        COPY . .
+        
+        # Create non-root user
+        RUN useradd -r -s /bin/bash emergency
+        RUN chown -R emergency:emergency /app
+        USER emergency
+        
+        # Expose port
+        EXPOSE 3000
+        
+        # Health check
+        HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+            CMD python -c "import requests; requests.get('http://localhost:3000/api/v1/health').raise_for_status()" || exit 1
+        
+        # Start application
+        CMD ["python", "app.py"]
+        EOF
+        
+    - name: 🏗️ Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:latest
+          ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ github.run_number }}
+          ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Deploy to Staging
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, docker]
+    if: |
+      (github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_environment == 'staging')
+    environment: staging
+    
+    steps:
+    - name: 📥 Download Build Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: application-package
+        
+    - name: 🚀 Deploy to Staging Server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ env.STAGING_SERVER }}
+        username: ${{ secrets.STAGING_USER }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        script: |
+          cd /opt/emergency-app-staging
+          
+          # Backup current version
+          if [ -d 'current' ]; then
+            mv current backup-$(date +%Y%m%d-%H%M%S)
+          fi
+          
+          # Extract new version
+          mkdir current
+          cd current
+          tar -xzf /tmp/${{ env.APP_NAME }}-${{ github.run_number }}.tar.gz
+          
+          # Run setup script
+          chmod +x setup.sh
+          ./setup.sh --production
+          
+          # Start services
+          systemctl restart emergency-app-staging
+          
+    - name: 📤 Copy Package to Staging
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ env.STAGING_SERVER }}
+        username: ${{ secrets.STAGING_USER }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        source: ${{ env.APP_NAME }}-${{ github.run_number }}.tar.gz
+        target: /tmp/
+
+  # Integration Tests
+  integration-test:
+    name: 🧪 Integration Tests
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: |
+      (github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_environment != 'skip')
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: 🔧 Install Dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pytest requests
+        
+    - name: ⏳ Wait for Staging Deployment
+      run: sleep 60
+      
+    - name: 🧪 Run Integration Tests
+      env:
+        STAGING_URL: http://${{ env.STAGING_SERVER }}
+      run: |
+        pytest tests/integration/ -v --tb=short
+
+  # Deploy to Production
+  deploy-production:
+    name: 🎯 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, docker, integration-test]
+    if: |
+      (github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_environment == 'production')
+    environment: production
+    
+    steps:
+    - name: 📥 Download Build Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: application-package
+        
+    - name: 📤 Copy Package to Production
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ env.PROD_SERVER }}
+        username: ${{ secrets.PROD_USER }}
+        key: ${{ secrets.PROD_SSH_KEY }}
+        source: ${{ env.APP_NAME }}-${{ github.run_number }}.tar.gz
+        target: /tmp/
+        
+    - name: 🎯 Deploy to Production Server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ env.PROD_SERVER }}
+        username: ${{ secrets.PROD_USER }}
+        key: ${{ secrets.PROD_SSH_KEY }}
+        script: |
+          cd /opt/emergency-app
+          
+          # Backup current version
+          if [ -d 'current' ]; then
+            mv current backup-$(date +%Y%m%d-%H%M%S)
+          fi
+          
+          # Extract new version
+          mkdir current
+          cd current
+          tar -xzf /tmp/${{ env.APP_NAME }}-${{ github.run_number }}.tar.gz
+          
+          # Run setup script
+          chmod +x setup.sh
+          ./setup.sh --production
+          
+          # Deploy monitoring
+          docker-compose -f docker-compose.monitoring.yml up -d
+          
+          # Restart services
+          systemctl restart emergency-app nginx
+          
+          # Health check
+          sleep 30
+          curl -f http://localhost:3000/api/v1/health
+
+  # Post-Deployment Verification
+  verify-deployment:
+    name: ✅ Verify Deployment
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: |
+      (github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_environment == 'production')
+    
+    steps:
+    - name: 🏥 Health Check
+      run: |
+        # Wait for services to stabilize
+        sleep 60
+        
+        # Check application health
+        curl -f http://${{ env.PROD_SERVER }}/api/v1/health
+        
+        # Check monitoring services
+        curl -f http://${{ env.PROD_SERVER }}:9090/-/healthy
+        curl -f http://${{ env.PROD_SERVER }}:3001/api/health
+        
+    - name: ⚡ Performance Test
+      run: |
+        # Install Apache Bench
+        sudo apt-get update
+        sudo apt-get install -y apache2-utils
+        
+        # Run basic load test
+        ab -n 100 -c 10 http://${{ env.PROD_SERVER }}/api/v1/health
+
+  # Notifications
+  notify:
+    name: 📢 Send Notifications
+    runs-on: ubuntu-latest
+    needs: [verify-deployment]
+    if: always()
+    
+    steps:
+    - name: 📧 Send Email Notification
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: |
+          ${{ needs.verify-deployment.result == 'success' && '✅' || '❌' }} 
+          Emergency Response App Deployment - ${{ github.run_number }}
+        body: |
+          Deployment Status: ${{ needs.verify-deployment.result }}
+          
+          Application: ${{ env.APP_NAME }}
+          Version: ${{ github.run_number }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          
+          🌐 Access URLs:
+          - Application: http://${{ env.PROD_SERVER }}
+          - Grafana: http://${{ env.PROD_SERVER }}:3001
+          - Prometheus: http://${{ env.PROD_SERVER }}:9090
+          
+          Build URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        to: ${{ secrets.EMAIL_RECIPIENTS }}
+        from: Emergency Response App CI/CD
+        
+    - name: 💬 Slack Notification
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ needs.verify-deployment.result }}
+        channel: '#emergency-app-deployments'
+        text: |
+          ${{ needs.verify-deployment.result == 'success' && '🎉 Deployment Successful!' || '💥 Deployment Failed!' }}
+          
+          *Application:* ${{ env.APP_NAME }}
+          *Version:* ${{ github.run_number }}
+          *Branch:* ${{ github.ref_name }}
+          *Environment:* Production
+          
+          <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Build>
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

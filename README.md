@@ -33,7 +33,22 @@ A comprehensive Emergency Response Application for Cameroon with dual user regis
 
 ## 🚀 Quick Start
 
-### Installation
+### Automated Setup (Recommended)
+```bash
+# Make setup script executable
+chmod +x setup.sh
+
+# Local development setup
+./setup.sh
+
+# Production deployment (requires sudo)
+sudo ./setup.sh --production
+
+# Development with monitoring
+./setup.sh --docker --monitoring
+```
+
+### Manual Installation
 ```bash
 # Clone or download the project
 cd emergency-response-app
@@ -308,6 +323,49 @@ sqlite3 /opt/emergency-app/emergency_app.db ".tables"
 
 ---
 
+## 🔄 CI/CD Pipeline
+
+### Automated Deployment
+The project includes comprehensive CI/CD pipelines for automated testing and deployment:
+
+#### Jenkins Pipeline (`Jenkinsfile`)
+- **Multi-stage pipeline** with build, test, and deployment
+- **Parallel execution** for faster builds
+- **Security scanning** with Bandit and Safety
+- **Docker integration** for containerized deployments
+- **Blue-green deployment** support
+- **Automatic rollback** on failure
+
+#### GitHub Actions (`.github/workflows/ci-cd.yml`)
+- **Matrix testing** across Python versions
+- **Automated testing** on push and pull requests
+- **Docker image building** and publishing
+- **Staging and production deployments**
+- **Integration testing** against live environments
+
+#### Pipeline Features
+- ✅ **Code Quality**: Linting, formatting, security scans
+- ✅ **Testing**: Unit tests, integration tests, performance tests
+- ✅ **Building**: Application packaging, Docker images
+- ✅ **Deployment**: Staging and production environments
+- ✅ **Monitoring**: Health checks, performance verification
+- ✅ **Notifications**: Email and Slack alerts
+
+#### Setup Instructions
+```bash
+# For Jenkins
+# See CI_CD_SETUP.md for complete Jenkins setup
+
+# For GitHub Actions
+# Configure secrets in repository settings:
+# - DOCKER_USERNAME, DOCKER_PASSWORD
+# - STAGING_SSH_KEY, PROD_SSH_KEY
+# - EMAIL_USERNAME, EMAIL_PASSWORD
+# - SLACK_WEBHOOK_URL
+```
+
+---
+
 ## 🧪 Testing
 
 ### API Testing with Postman
@@ -362,6 +420,10 @@ curl http://31.97.11.49:3001/api/health
 
 ```
 emergency-response-app/
+├── setup.sh                        # 🚀 Automated setup script
+├── SETUP_GUIDE.md                  # 📖 Setup script documentation
+├── Jenkinsfile                     # 🔄 Jenkins CI/CD pipeline
+├── CI_CD_SETUP.md                  # 📋 CI/CD documentation
 ├── app.py                          # Main Flask application
 ├── database.py                     # Database operations
 ├── auth.py                         # Authentication system
@@ -389,6 +451,12 @@ emergency-response-app/
 │   ├── alertmanager.yml            # Alert manager config
 │   ├── alert_rules.yml             # Alert rules
 │   └── grafana/                    # Grafana dashboards
+├── tests/                          # Test suite
+│   ├── test_app.py                 # Unit tests
+│   ├── integration/                # Integration tests
+│   └── pytest.ini                 # Test configuration
+├── .github/workflows/              # GitHub Actions CI/CD
+│   └── ci-cd.yml                   # Automated pipeline
 ├── ansible/                        # Infrastructure as Code
 │   ├── site.yml                    # Master playbook
 │   ├── playbook-install-packages.yml # Package installation
