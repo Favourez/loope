@@ -1,0 +1,41 @@
+{{- if .Values.app.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "emergency-response.dataPvcName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "emergency-response.labels" . | nindent 4 }}
+    component: app-data
+spec:
+  accessModes:
+    - {{ .Values.app.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.app.persistence.size }}
+  {{- if .Values.app.persistence.storageClass }}
+  storageClassName: {{ .Values.app.persistence.storageClass }}
+  {{- else if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "emergency-response.logsPvcName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "emergency-response.labels" . | nindent 4 }}
+    component: app-logs
+spec:
+  accessModes:
+    - {{ .Values.app.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.app.persistence.logsSize }}
+  {{- if .Values.app.persistence.storageClass }}
+  storageClassName: {{ .Values.app.persistence.storageClass }}
+  {{- else if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+{{- end }}

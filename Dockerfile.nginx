@@ -1,0 +1,30 @@
+# Emergency Response App - Nginx Reverse Proxy Dockerfile
+FROM nginx:alpine
+
+# Set metadata
+LABEL maintainer="Emergency Response Team"
+LABEL description="Nginx reverse proxy for Emergency Response App"
+LABEL version="1.0.0"
+
+# Copy nginx configuration
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Copy static files
+COPY static/ /usr/share/nginx/html/static/
+
+# Create log directory
+RUN mkdir -p /var/log/nginx
+
+# Set proper permissions
+RUN chown -R nginx:nginx /var/log/nginx /usr/share/nginx/html
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:80/health || exit 1
+
+# Expose port
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

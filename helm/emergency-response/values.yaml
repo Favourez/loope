@@ -1,0 +1,208 @@
+# Default values for emergency-response.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Application configuration
+app:
+  name: emergency-response-app
+  image:
+    repository: emergency-response-app
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 3
+  
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  env:
+    FLASK_ENV: production
+    DATABASE_PATH: /app/data/emergency.db
+    PORT: "3000"
+    LOG_LEVEL: INFO
+  
+  secrets:
+    secretKey: emergency-response-secret-key-2024
+    databasePassword: emergency123
+  
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    dataPath: /app/data
+    logsPath: /app/logs
+    logsSize: 2Gi
+
+# Monitoring Dashboard configuration
+monitoring:
+  dashboard:
+    enabled: true
+    name: monitoring-dashboard
+    image:
+      repository: monitoring-dashboard
+      tag: "v1.0.0"
+      pullPolicy: IfNotPresent
+    
+    replicaCount: 2
+    
+    service:
+      type: ClusterIP
+      port: 9999
+      targetPort: 9999
+    
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 75
+  
+  # Prometheus configuration
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 10Gi
+    alertmanager:
+      enabled: true
+      persistentVolume:
+        enabled: true
+        size: 2Gi
+  
+  # Grafana configuration
+  grafana:
+    enabled: true
+    adminPassword: emergency123
+    persistence:
+      enabled: true
+      size: 3Gi
+    service:
+      type: NodePort
+      nodePort: 30300
+
+# Nginx reverse proxy configuration
+nginx:
+  enabled: true
+  name: emergency-nginx
+  image:
+    repository: nginx-proxy
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 80
+  
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 60
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: redis123
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
+  replica:
+    replicaCount: 1
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: emergency-app.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: nginx
+        - path: /api
+          pathType: Prefix
+          service: app
+        - path: /monitoring
+          pathType: Prefix
+          service: monitoring
+  tls:
+    enabled: false
+    secretName: emergency-app-tls
+
+# Security configuration
+security:
+  podSecurityPolicy:
+    enabled: false
+  networkPolicy:
+    enabled: true
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+
+# Node selector and tolerations
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Service monitor for Prometheus
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s

@@ -8,23 +8,70 @@ services:
       dockerfile: Dockerfile
     container_name: emergency-app
     ports:
-      - "3000:3000"
+      - "3000:5000"
     volumes:
-      - ./emergency_app.db:/app/emergency_app.db
+      - app_data:/app/data
+      - app_logs:/app/logs
       - ./static:/app/static
       - ./templates:/app/templates
     environment:
-      - FLASK_ENV=development
-      - FLASK_DEBUG=1
+      - FLASK_ENV=production
+      - DATABASE_PATH=/app/data/emergency.db
+      - PORT=5000
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:3000/api/v1/health').raise_for_status()"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     networks:
       - emergency-network
+
+  # Monitoring Dashboard
+  monitoring-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitoring
+    container_name: monitoring-dashboard
+    ports:
+      - "9999:9999"
+    environment:
+      - PORT=9999
+    volumes:
+      - ./coverage.xml:/app/coverage.xml:ro
+      - ./htmlcov:/app/htmlcov:ro
+      - ./tests:/app/tests:ro
+    networks:
+      - emergency-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9999/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx Reverse Proxy
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: emergency-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - emergency-app
+      - monitoring-dashboard
+    networks:
+      - emergency-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   # Prometheus for monitoring
   prometheus:
@@ -119,6 +166,10 @@ services:
     restart: unless-stopped
 
 volumes:
+  app_data:
+    driver: local
+  app_logs:
+    driver: local
   prometheus_data:
   grafana_data:
   alertmanager_data:

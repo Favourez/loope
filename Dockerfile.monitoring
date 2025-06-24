@@ -1,0 +1,54 @@
+# Emergency Response App - Monitoring Dashboard Dockerfile
+FROM python:3.11-slim
+
+# Set metadata
+LABEL maintainer="Emergency Response Team"
+LABEL description="Monitoring and Coverage Dashboard for Emergency Response App"
+LABEL version="1.0.0"
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PORT=9999
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements for monitoring
+COPY monitoring-requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r monitoring-requirements.txt
+
+# Copy monitoring application
+COPY deliverables_dashboard.py .
+
+# Create necessary directories first
+RUN mkdir -p /app/test-reports /app/logs /app/htmlcov /app/tests
+
+# Copy all files and handle missing ones
+COPY . /tmp/source/
+RUN cp -r /tmp/source/htmlcov/* ./htmlcov/ 2>/dev/null || echo "No htmlcov files found" && \
+    cp -r /tmp/source/tests/* ./tests/ 2>/dev/null || echo "No test files found" && \
+    cp /tmp/source/coverage.xml . 2>/dev/null || echo "No coverage.xml found" && \
+    rm -rf /tmp/source
+
+# Create non-root user for security
+RUN adduser --disabled-password --gecos '' monitor && \
+    chown -R monitor:monitor /app
+USER monitor
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Expose port
+EXPOSE ${PORT}
+
+# Run the monitoring dashboard
+CMD ["python", "deliverables_dashboard.py"]
