@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  emergency-app:
+    build: .
+    container_name: emergency-app-local
+    ports:
+      - "80:3000"
+    volumes:
+      - emergency-data:/app/data
+      - ./static:/app/static
+      - ./templates:/app/templates
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+      - DATABASE_PATH=/app/data/emergency_app.db
+    networks:
+      - emergency-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: emergency-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - emergency-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: emergency-grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=emergency123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - emergency-network
+    restart: unless-stopped
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: emergency-jenkins
+    ports:
+      - "8081:8080"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+    networks:
+      - emergency-network
+    restart: unless-stopped
+
+volumes:
+  emergency-data:
+  prometheus-data:
+  grafana-data:
+  jenkins-data:
+
+networks:
+  emergency-network:
+    driver: bridge

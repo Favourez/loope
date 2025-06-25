@@ -3,7 +3,7 @@ import bcrypt
 from datetime import datetime
 import os
 
-DATABASE_PATH = 'emergency_app.db'
+DATABASE_PATH = os.environ.get('DATABASE_PATH', 'emergency_app.db')
 
 def get_db_connection():
     """Get database connection"""

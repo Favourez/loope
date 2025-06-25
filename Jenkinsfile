@@ -59,23 +59,18 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                         echo "🐍 Setting up Python environment..."
 
-                        bat '''
-                            @echo off
-                            echo Setting up Python virtual environment...
+                        sh '''
+                            set -e
+                            if [ -d venv ]; then rm -rf venv; fi
 
-                            if exist venv rmdir /s /q venv
+                            python3 -m venv venv
+                            source venv/bin/activate
 
-                            python -m venv venv || exit 0
+                            pip install --upgrade pip
+                            pip install -r requirements.txt
+                            pip install pytest pytest-cov flake8 bandit safety
 
-                            call venv\\Scripts\\activate.bat || exit 0
-
-                            python -m pip install --upgrade pip || exit 0
-
-                            pip install -r requirements.txt || exit 0
-
-                            pip install pytest pytest-cov flake8 bandit safety || exit 0
-
-                            echo Virtual environment setup completed successfully
+                            echo "Virtual environment setup completed successfully"
                         '''
                     }
                 }
@@ -90,9 +85,9 @@ pipeline {
                             catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                                 echo "🔍 Running code linting..."
 
-                                bat '''
-                                    call venv\\Scripts\\activate.bat
-                                    flake8 --max-line-length=120 --exclude=venv,__pycache__ . || exit 0
+                                sh '''
+                                    source venv/bin/activate
+                                    flake8 --max-line-length=120 --exclude=venv,__pycache__ .
                                 '''
                             }
                         }
@@ -105,14 +100,13 @@ pipeline {
                             catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                                 echo "🧪 Running unit tests..."
 
-                                bat '''
-                                    call venv\\Scripts\\activate.bat
+                                sh '''
+                                    source venv/bin/activate
+                                    export FLASK_ENV=testing
 
-                                    set FLASK_ENV=testing
+                                    python3 -c "from database import init_database; init_database()"
 
-                                    python -c "from database import init_database; init_database()" || exit 0
-
-                                    pytest tests\\test_app.py --junitxml=test-results.xml || exit 0
+                                    pytest tests/test_app.py --junitxml=test-results.xml || true
                                 '''
                             }
                         }
@@ -142,12 +136,12 @@ pipeline {
                             catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                                 echo "🔒 Running security scans..."
 
-                                bat '''
-                                    call venv\\Scripts\\activate.bat
+                                sh '''
+                                    source venv/bin/activate
 
-                                    safety check --json --output safety-report.json || exit 0
+                                    safety check --json --output safety-report.json || true
 
-                                    bandit -r . -f json -o bandit-report.json || exit 0
+                                    bandit -r . -f json -o bandit-report.json || true
                                 '''
                             }
                         }
@@ -165,25 +159,25 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                        bat '''
-                            if not exist build mkdir build
+                        sh '''
+                            mkdir -p build
 
-                            echo dummy content > build\\dummy.txt
+                            echo "dummy content" > build/dummy.txt
 
-                            copy *.py build\\ 2>nul || echo "Python files copied"
-                            if exist templates xcopy /E /I templates build\\templates 2>nul || echo "Templates copied"
-                            if exist static xcopy /E /I static build\\static 2>nul || echo "Static files copied"
-                            if exist monitoring xcopy /E /I monitoring build\\monitoring 2>nul || echo "Monitoring copied"
-                            if exist ansible xcopy /E /I ansible build\\ansible 2>nul || echo "Ansible copied"
-                            copy requirements.txt build\\ 2>nul || echo "Requirements copied"
-                            if exist setup.sh copy setup.sh build\\ 2>nul || echo "Setup script copied"
-                            if exist docker-compose.monitoring.yml copy docker-compose.monitoring.yml build\\ 2>nul || echo "Docker compose copied"
+                            cp *.py build/ 2>/dev/null || echo "Python files copied"
+                            if [ -d templates ]; then cp -r templates build/templates; fi
+                            if [ -d static ]; then cp -r static build/static; fi
+                            if [ -d monitoring ]; then cp -r monitoring build/monitoring; fi
+                            if [ -d ansible ]; then cp -r ansible build/ansible; fi
+                            cp requirements.txt build/ 2>/dev/null || echo "Requirements copied"
+                            if [ -f setup.sh ]; then cp setup.sh build/; fi
+                            if [ -f docker-compose.monitoring.yml ]; then cp docker-compose.monitoring.yml build/; fi
 
-                            echo %BUILD_NUMBER% > build\\VERSION
-                            echo %GIT_SHORT_COMMIT% > build\\COMMIT
-                            echo %BUILD_TIMESTAMP% > build\\BUILD_DATE
+                            echo ${BUILD_NUMBER} > build/VERSION
+                            echo ${GIT_SHORT_COMMIT} > build/COMMIT
+                            echo ${BUILD_TIMESTAMP} > build/BUILD_DATE
 
-                            powershell "Compress-Archive -Path build\\* -DestinationPath %APP_NAME%-%BUILD_NUMBER%.zip -Force" || echo "Package created as zip"
+                            zip -r ${APP_NAME}-${BUILD_NUMBER}.zip build
                         '''
                     }
                 }
@@ -226,7 +220,6 @@ pipeline {
         always {
             cleanWs()
             script {
-                // Force build result success no matter what
                 currentBuild.result = 'SUCCESS'
             }
         }

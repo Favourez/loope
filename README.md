@@ -21,7 +21,7 @@ A comprehensive Emergency Response Application for Cameroon with dual user regis
 - **Main App**: http://31.97.11.49
 - **Main App**: http://srv878357.hstgr.cloud
 - **API Health**: http://31.97.11.49/api/v1/health
-- **Jenkins CI/CD**: http://31.97.11.49:8080
+- **Jenkins CI/CD**: http://31.97.11.49:8081
 - **Prometheus**: http://31.97.11.49:9090
 - **Grafana**: http://31.97.11.49:3001
 
