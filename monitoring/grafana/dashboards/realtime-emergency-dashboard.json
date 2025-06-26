@@ -1,0 +1,139 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "🚨 Real-Time Emergency Response Monitoring",
+    "tags": ["emergency", "realtime", "alerts"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "1s",
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "🔴 LIVE Emergency Reports Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(emergency_reports_total[1m]) * 60",
+            "refId": "A",
+            "legendFormat": "Reports per minute"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 20,
+              "pointSize": 5
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 2},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "⚡ Response Time Distribution",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(response_time_seconds_bucket[5m]))",
+            "refId": "A",
+            "legendFormat": "50th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(response_time_seconds_bucket[5m]))",
+            "refId": "B",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(response_time_seconds_bucket[5m]))",
+            "refId": "C",
+            "legendFormat": "99th percentile"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "📈 Page Views Over Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(page_views_total[5m]) * 300",
+            "refId": "A",
+            "legendFormat": "{{page}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "🏥 Emergency Reports by Type & Severity",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "sum by (severity, type) (emergency_reports_total)",
+            "refId": "A",
+            "format": "heatmap",
+            "legendFormat": "{{severity}} - {{type}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 5,
+        "title": "🩺 First Aid Guide Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(first_aid_views_total[5m]) * 300",
+            "refId": "A",
+            "legendFormat": "{{practice_name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 6,
+        "title": "🔥 Critical Alerts",
+        "type": "alertlist",
+        "targets": [],
+        "options": {
+          "showOptions": "current",
+          "maxItems": 10,
+          "sortOrder": 1,
+          "dashboardAlerts": false,
+          "alertName": "",
+          "dashboardTitle": "",
+          "folderId": null,
+          "tags": []
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 24}
+      }
+    ]
+  }
+}

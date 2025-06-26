@@ -15,9 +15,9 @@ scrape_configs:
   # Emergency Response App
   - job_name: 'emergency-app'
     static_configs:
-      - targets: ['host.docker.internal:3000']
+      - targets: ['emergency-app-local:3000']
     metrics_path: '/metrics'
-    scrape_interval: 10s
+    scrape_interval: 5s
     scrape_timeout: 5s
 
   # Prometheus itself
@@ -33,6 +33,6 @@ scrape_configs:
   # Additional Flask app endpoints
   - job_name: 'emergency-app-health'
     static_configs:
-      - targets: ['host.docker.internal:3000']
-    metrics_path: '/api/v1/health'
+      - targets: ['emergency-app-local:3000']
+    metrics_path: '/health'
     scrape_interval: 30s

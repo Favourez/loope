@@ -1,0 +1,135 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Emergency Response App - Comprehensive Monitoring",
+    "tags": ["emergency", "comprehensive", "monitoring"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "🚨 Emergency Reports - Total",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(emergency_reports_total)",
+            "refId": "A",
+            "legendFormat": "Total Reports"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 20}
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "💚 System Health Score",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "system_health_score",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 50},
+                {"color": "green", "value": 80}
+              ]
+            },
+            "unit": "percent"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "👥 Active Users",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "active_users",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "green", "value": 5}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "📊 Total Page Views",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(page_views_total)",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "🚑 Emergency Reports by Severity",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (severity) (emergency_reports_total)",
+            "refId": "A",
+            "legendFormat": "{{severity}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "🩺 First Aid Views by Practice",
+        "type": "barchart",
+        "targets": [
+          {
+            "expr": "sum by (practice_name) (first_aid_views_total)",
+            "refId": "A",
+            "legendFormat": "{{practice_name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ]
+  }
+}

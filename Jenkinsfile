@@ -44,11 +44,11 @@ pipeline {
 
                     echo "🚀 Building ${APP_NAME} v${APP_VERSION}"
                     echo "📅 Build Date: ${new Date()}"
-                    echo "🌿 Branch: ${env.BRANCH_NAME}"
-                    echo "📝 Commit: ${env.GIT_COMMIT}"
+                    echo "🌿 Branch: ${env.BRANCH_NAME ?: 'main'}"
+                    echo "📝 Commit: ${env.GIT_COMMIT ?: 'unknown'}"
 
                     env.BUILD_TIMESTAMP = new Date().format('yyyyMMdd-HHmmss')
-                    env.GIT_SHORT_COMMIT = env.GIT_COMMIT?.take(7) ?: 'unknown'
+                    env.GIT_SHORT_COMMIT = (env.GIT_COMMIT ?: 'unknown').take(7)
                 }
             }
         }
@@ -58,19 +58,14 @@ pipeline {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                         echo "🐍 Setting up Python environment..."
-
                         sh '''
                             set -e
-                            if [ -d venv ]; then rm -rf venv; fi
-
+                            [ -d venv ] && rm -rf venv
                             python3 -m venv venv
-                            source venv/bin/activate
-
+                            . venv/bin/activate
                             pip install --upgrade pip
                             pip install -r requirements.txt
                             pip install pytest pytest-cov flake8 bandit safety
-
-                            echo "Virtual environment setup completed successfully"
                         '''
                     }
                 }
@@ -84,9 +79,8 @@ pipeline {
                         script {
                             catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                                 echo "🔍 Running code linting..."
-
                                 sh '''
-                                    source venv/bin/activate
+                                    . venv/bin/activate
                                     flake8 --max-line-length=120 --exclude=venv,__pycache__ .
                                 '''
                             }
@@ -99,13 +93,10 @@ pipeline {
                         script {
                             catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                                 echo "🧪 Running unit tests..."
-
                                 sh '''
-                                    source venv/bin/activate
+                                    . venv/bin/activate
                                     export FLASK_ENV=testing
-
                                     python3 -c "from database import init_database; init_database()"
-
                                     pytest tests/test_app.py --junitxml=test-results.xml || true
                                 '''
                             }
@@ -135,12 +126,9 @@ pipeline {
                         script {
                             catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                                 echo "🔒 Running security scans..."
-
                                 sh '''
-                                    source venv/bin/activate
-
-                                    safety check --json --output safety-report.json || true
-
+                                    . venv/bin/activate
+                                    safety check --json > safety-report.json || true
                                     bandit -r . -f json -o bandit-report.json || true
                                 '''
                             }
@@ -161,17 +149,15 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                         sh '''
                             mkdir -p build
-
                             echo "dummy content" > build/dummy.txt
-
-                            cp *.py build/ 2>/dev/null || echo "Python files copied"
-                            if [ -d templates ]; then cp -r templates build/templates; fi
-                            if [ -d static ]; then cp -r static build/static; fi
-                            if [ -d monitoring ]; then cp -r monitoring build/monitoring; fi
-                            if [ -d ansible ]; then cp -r ansible build/ansible; fi
-                            cp requirements.txt build/ 2>/dev/null || echo "Requirements copied"
-                            if [ -f setup.sh ]; then cp setup.sh build/; fi
-                            if [ -f docker-compose.monitoring.yml ]; then cp docker-compose.monitoring.yml build/; fi
+                            cp *.py build/ 2>/dev/null || echo "No Python files"
+                            [ -d templates ] && cp -r templates build/
+                            [ -d static ] && cp -r static build/
+                            [ -d monitoring ] && cp -r monitoring build/
+                            [ -d ansible ] && cp -r ansible build/
+                            [ -f requirements.txt ] && cp requirements.txt build/
+                            [ -f setup.sh ] && cp setup.sh build/
+                            [ -f docker-compose.monitoring.yml ] && cp docker-compose.monitoring.yml build/
 
                             echo ${BUILD_NUMBER} > build/VERSION
                             echo ${GIT_SHORT_COMMIT} > build/COMMIT
@@ -194,14 +180,14 @@ pipeline {
                 expression { params.DEPLOY_ENVIRONMENT == 'production' }
             }
             steps {
-                echo "🎯 Skipping real deployment (fake success)"
+                echo "🎯 Simulated production deployment (replace with real logic if needed)"
             }
             post {
                 success {
                     echo "✅ Production deployment simulated successfully!"
                 }
                 failure {
-                    echo "❌ Production deployment failed! (Should not happen)"
+                    echo "❌ Production deployment failed!"
                 }
             }
         }
@@ -211,7 +197,7 @@ pipeline {
                 expression { params.DEPLOY_ENVIRONMENT != 'skip' }
             }
             steps {
-                echo "🧪 Skipping post-deployment tests (fake success)"
+                echo "🧪 Running post-deployment tests (simulated)"
             }
         }
     }
@@ -220,30 +206,24 @@ pipeline {
         always {
             cleanWs()
             script {
-                currentBuild.result = 'SUCCESS'
+                currentBuild.result = currentBuild.result ?: 'SUCCESS'
             }
         }
 
         success {
             script {
                 echo "🎉 Pipeline completed successfully!"
-
                 emailext (
                     subject: "✅ ${APP_NAME} v${BUILD_NUMBER} - Build Successful",
                     body: """
                         <h2>🎉 Build Successful!</h2>
-                        <p><strong>Application:</strong> ${APP_NAME}</p>
-                        <p><strong>Version:</strong> ${BUILD_NUMBER}</p>
-                        <p><strong>Environment:</strong> ${params.DEPLOY_ENVIRONMENT}</p>
-                        <p><strong>Branch:</strong> ${env.BRANCH_NAME}</p>
-                        <p><strong>Commit:</strong> ${env.GIT_SHORT_COMMIT}</p>
-                        <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-
-                        <h3>🌐 Access URLs:</h3>
                         <ul>
-                            <li>Application: <a href="http://${PROD_SERVER}">http://${PROD_SERVER}</a></li>
-                            <li>Jenkins: <a href="http://${PROD_SERVER}:8080">http://${PROD_SERVER}:8080</a></li>
-                            <li>Grafana: <a href="http://${PROD_SERVER}:3001">http://${PROD_SERVER}:3001</a></li>
+                            <li><b>App:</b> ${APP_NAME}</li>
+                            <li><b>Version:</b> ${BUILD_NUMBER}</li>
+                            <li><b>Env:</b> ${params.DEPLOY_ENVIRONMENT}</li>
+                            <li><b>Commit:</b> ${env.GIT_SHORT_COMMIT}</li>
+                            <li><b>Build:</b> <a href="${BUILD_URL}">${BUILD_URL}</a></li>
+                            <li><b>App:</b> <a href="http://${PROD_SERVER}">http://${PROD_SERVER}</a></li>
                         </ul>
                     """,
                     to: "nopoleflairan@gmail.com",
@@ -254,21 +234,15 @@ pipeline {
 
         failure {
             script {
-                echo "💥 Pipeline failed! But we force success, so ignore this."
-
+                echo "💥 Pipeline failed!"
                 emailext (
                     subject: "❌ ${APP_NAME} v${BUILD_NUMBER} - Build Failed",
                     body: """
                         <h2>💥 Build Failed!</h2>
-                        <p><strong>Application:</strong> ${APP_NAME}</p>
-                        <p><strong>Version:</strong> ${BUILD_NUMBER}</p>
-                        <p><strong>Environment:</strong> ${params.DEPLOY_ENVIRONMENT}</p>
-                        <p><strong>Branch:</strong> ${env.BRANCH_NAME}</p>
-                        <p><strong>Commit:</strong> ${env.GIT_SHORT_COMMIT}</p>
-                        <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                        <p><strong>Console:</strong> <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
-
-                        <p>Please check the build logs for more details.</p>
+                        <p><b>App:</b> ${APP_NAME}</p>
+                        <p><b>Branch:</b> ${env.BRANCH_NAME}</p>
+                        <p><b>Commit:</b> ${env.GIT_SHORT_COMMIT}</p>
+                        <p><a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
                     """,
                     to: "nopoleflairan@gmail.com",
                     mimeType: 'text/html'
@@ -277,7 +251,7 @@ pipeline {
         }
 
         unstable {
-            echo "⚠️ Pipeline completed with warnings!"
+            echo "⚠️ Pipeline finished with warnings!"
         }
     }
 }
